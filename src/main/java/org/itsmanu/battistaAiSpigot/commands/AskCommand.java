@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
+import org.itsmanu.battistaAiSpigot.utils.ChatUtil;
 import org.itsmanu.battistaAiSpigot.utils.HttpUtil;
 
 import java.util.logging.Logger;
@@ -34,22 +35,32 @@ public class AskCommand implements CommandExecutor {
 
         // Check if arguments are provided
         if (args.length == 0) {
-            sender.sendMessage("§cUsage: /ask <question>");
-            sender.sendMessage("§eExample: /ask How do I craft a diamond sword?");
+            String commands = "Usage: /ask <question>\nExample: /ask How do I craft a diamond sword?";
+            String message = ChatUtil.formatConfigMessage("messages.ask_usage", commands);
+
+            String[] lines = message.split("\n");
+
+            // Send each line with color codes translated
+            for (String line : lines) {
+                String coloredLine = ChatUtil.colorize(line);
+                sender.sendMessage(coloredLine);
+            }
             return true;
         }
 
         // Ensure the sender is a player
         if (!(sender instanceof Player)) {
-            sender.sendMessage("§cThis command can only be used by players!");
+            String message = ChatUtil.formatConfigMessage("messages.only_players", "You're not a player!");
+            sender.sendMessage(message);
             return true;
         }
 
         Player player = (Player) sender;
 
         // Check if the player has the required permission
-        if (!player.hasPermission("aihelper.ask")) {
-            player.sendMessage("§cYou do not have permission to use this command!");
+        if (!player.hasPermission("battista.use")) {
+            String message = ChatUtil.formatConfigMessage("messages.no_permission", "You need battista.use permission");
+            player.sendMessage(message);
             return true;
         }
 
@@ -66,17 +77,20 @@ public class AskCommand implements CommandExecutor {
 
         // Validate the question
         if (question.isEmpty()) {
-            player.sendMessage("§cThe question cannot be empty!");
+            String message = ChatUtil.formatConfigMessage("messages.empty_question", "Empty question");
+            player.sendMessage(message);
             return true;
         }
 
         if (question.length() < 3) {
-            player.sendMessage("§cThe question is too short! Please write at least 3 characters.");
+            String message = ChatUtil.formatConfigMessage("messages.question_too_short", "Question too short");
+            player.sendMessage(message);
             return true;
         }
 
         if (question.length() > 500) {
-            player.sendMessage("§cThe question is too long! Maximum 500 characters allowed.");
+            String message = ChatUtil.formatConfigMessage("messages.question_too_long", "Question too long");
+            player.sendMessage(message);
             return true;
         }
 

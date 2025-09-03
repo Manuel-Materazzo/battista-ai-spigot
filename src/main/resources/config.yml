@@ -26,9 +26,15 @@ messages:
   processing: "&eProcessing your question..."
   unknown_command: "&cUnknown subcommand. Use '/battista help' to see available commands."
   no_permission: "&cYou do not have permission to use this command!"
+  empty_question: "&cYou do not have permission to use this command!"
+  only_players: "&cOnly players can use this command!"
   realoaded: "&aBattista plugin configuration successfully reloaded!"
   not_realoaded: "&cAn error occurred while reloading the configuration!"
   help: |-
     &7Available commands:
     &b/battista reload &7- Reload the plugin configuration
     &b/battista help &7- Show this help message
+    &b/ask &7- Ask a question to the AI Helper
+  ask_usage: |-
+    &cUsage: /ask <question>
+    &bExample: /ask How do I craft a diamond sword?
