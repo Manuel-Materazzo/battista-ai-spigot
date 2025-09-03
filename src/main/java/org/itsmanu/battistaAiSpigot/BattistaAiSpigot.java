@@ -23,19 +23,19 @@ public final class BattistaAiSpigot extends JavaPlugin {
         // Register event listeners
         registerEvents();
 
-        getLogger().info("BattistaAiSpigot successfully enabled!");
-        getLogger().info("Configured endpoint: " + getConfig().getString("endpoint.url"));
+        getLogger().info("Battista successfully enabled!");
+        getLogger().info("Configured Battista backend endpoint: " + getConfig().getString("endpoint.url"));
 
         // Log active modes
         if (getConfig().getBoolean("chat.auto_detect_questions")) {
-            getLogger().info("Automatic question detection: ENABLED");
+            getLogger().info("Battista Automatic question detection: ENABLED");
         }
-        getLogger().info("Active chat tag: " + getConfig().getString("chat.tag"));
+        getLogger().info("Battista Active chat tag: " + getConfig().getString("chat.tag"));
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("BattistaAiSpigot successfully disabled!");
+        getLogger().info("Battista successfully disabled!");
     }
 
     /**
@@ -47,7 +47,7 @@ public final class BattistaAiSpigot extends JavaPlugin {
         getCommand("battista").setExecutor(new BattistaCommand());
         getCommand("battista").setTabCompleter(new BattistaCommand());
 
-        getLogger().info("Commands successfully registered!");
+        getLogger().info("Battista Commands successfully registered!");
     }
 
     /**
@@ -57,15 +57,7 @@ public final class BattistaAiSpigot extends JavaPlugin {
         // Register the listener for chat events
         getServer().getPluginManager().registerEvents(new ChatListener(), this);
 
-        getLogger().info("Event listeners successfully registered!");
-    }
-
-    /**
-     * Reloads the plugin configuration.
-     */
-    public void reloadPluginConfig() {
-        reloadConfig();
-        getLogger().info("Configuration successfully reloaded!");
+        getLogger().info("Battista Event listeners successfully registered!");
     }
 
     /**
