@@ -1,0 +1,18 @@
+name: Battista-Ai-Helper
+version: 1.0.0
+main: org.itsmanu.battistaAiSpigot.BattistaAiSpigot
+api-version: 1.21
+authors:
+  - manuel-materazzo
+description: A plugin AI helper that answers users' questions
+
+commands:
+  ask:
+    description: Ask a question to the AI helper
+    usage: /ask <question>
+    permission: aihelper.ask
+
+permissions:
+  aihelper.ask:
+    description: Permesso per usare il comando ask
+    default: true

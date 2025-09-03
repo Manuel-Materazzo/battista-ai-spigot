@@ -1,0 +1,21 @@
+# HTTP endpoint URL for the AI
+endpoint:
+  url: "http://localhost:8000/v2/answer"
+  timeout: 30
+
+# Chat settings
+chat:
+  # Tag for activation in chat (e.g., @Helper)
+  tag: "@Helper"
+
+  # Automatic question detection (looks for ? at the end of the message)
+  auto_detect_questions: true
+
+  # Prefix for AI responses
+  response_prefix: "&7[&bAI Helper&7]&f "
+
+  # Message when the AI is processing
+  processing_message: "&7[&bAI Helper&7]&e Processing your question..."
+
+# Debug settings
+debug: false
