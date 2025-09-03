@@ -4,6 +4,7 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -11,12 +12,17 @@ import org.bukkit.event.Listener;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
 import org.itsmanu.battistaAiSpigot.utils.HttpUtil;
 
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 public class ChatListener implements Listener {
 
-    private final BattistaAiSpigot plugin;
+    private final FileConfiguration config = BattistaAiSpigot.getInstance().getConfig();
+    private final Logger logger = BattistaAiSpigot.getInstance().getLogger();
+    
     private final PlainTextComponentSerializer plainTextSerializer = PlainTextComponentSerializer.plainText();
+
+    private final boolean autoDetectQuestions = config.getBoolean("chat.auto_detect_questions", true);
 
     // Pattern to detect questions (ends with ? optionally followed by spaces)
     private static final Pattern QUESTION_PATTERN = Pattern.compile(".*\\?\\s*$");
@@ -24,11 +30,9 @@ public class ChatListener implements Listener {
     // Pattern to remove the tag from the question
     private final Pattern tagPattern;
 
-    public ChatListener(BattistaAiSpigot plugin) {
-        this.plugin = plugin;
-
+    public ChatListener() {
         // Create the pattern for the configured tag
-        String tag = plugin.getConfig().getString("chat.tag", "@Helper");
+        String tag = config.getString("chat.tag", "@Helper");
         // Escape special characters for regex
         String escapedTag = Pattern.quote(tag);
         this.tagPattern = Pattern.compile(escapedTag + "\\s*", Pattern.CASE_INSENSITIVE);
@@ -54,33 +58,31 @@ public class ChatListener implements Listener {
         message = message.trim();
 
         // Log the message if debug mode is enabled
-        if (plugin.getConfig().getBoolean("debug", false)) {
-            plugin.getLogger().info("Chat message from " + player.getName() + ": " + message);
+        if (config.getBoolean("debug", false)) {
+            logger.info("Chat message from " + player.getName() + ": " + message);
         }
 
         String question = null;
         boolean shouldActivate = false;
 
         // 1. Check if the message contains the tag (e.g., @Helper)
-        String tag = plugin.getConfig().getString("chat.tag", "@Helper");
+        String tag = config.getString("chat.tag", "@Helper");
         if (message.toLowerCase().contains(tag.toLowerCase())) {
             // Remove the tag from the message to extract the question
             question = tagPattern.matcher(message).replaceAll("").trim();
             shouldActivate = true;
 
-            if (plugin.getConfig().getBoolean("debug", false)) {
-                plugin.getLogger().info("Tag detected. Extracted question: " + question);
+            if (config.getBoolean("debug", false)) {
+                logger.info("Tag detected. Extracted question: " + question);
             }
         }
         // 2. Check for automatic question detection
-        else if (plugin.getConfig().getBoolean("chat.auto_detect_questions", true) &&
-                QUESTION_PATTERN.matcher(message).matches()) {
-
+        else if (autoDetectQuestions && QUESTION_PATTERN.matcher(message).matches()) {
             question = message;
             shouldActivate = true;
 
-            if (plugin.getConfig().getBoolean("debug", false)) {
-                plugin.getLogger().info("Automatically detected question: " + question);
+            if (config.getBoolean("debug", false)) {
+                logger.info("Automatically detected question: " + question);
             }
         }
 
@@ -90,15 +92,15 @@ public class ChatListener implements Listener {
             // Validate the question
             if (question.length() < 3) {
                 // Question is too short, ignore it
-                if (plugin.getConfig().getBoolean("debug", false)) {
-                    plugin.getLogger().info("Question too short, ignored");
+                if (config.getBoolean("debug", false)) {
+                    logger.info("Question too short, ignored");
                 }
                 return;
             }
 
             if (question.length() > 500) {
                 // Question is too long, send an error message
-                Bukkit.getScheduler().runTask(plugin, () -> {
+                Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
                     player.sendMessage("§c[AI Helper] The question is too long! Maximum 500 characters allowed.");
                 });
                 return;
@@ -106,8 +108,8 @@ public class ChatListener implements Listener {
 
             // Check if the player has the required permission (optional for automatic chat detection)
             if (!player.hasPermission("aihelper.ask")) {
-                if (plugin.getConfig().getBoolean("debug", false)) {
-                    plugin.getLogger().info("Player " + player.getName() + " does not have permission for AI helper");
+                if (config.getBoolean("debug", false)) {
+                    logger.info("Player " + player.getName() + " does not have permission for AI helper");
                 }
                 return;
             }

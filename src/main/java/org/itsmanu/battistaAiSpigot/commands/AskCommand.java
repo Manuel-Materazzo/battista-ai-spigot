@@ -3,19 +3,22 @@ package org.itsmanu.battistaAiSpigot.commands;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
 import org.itsmanu.battistaAiSpigot.utils.HttpUtil;
+
+import java.util.logging.Logger;
 
 /**
  * Handles the /ask command to send questions to the AI.
  */
 public class AskCommand implements CommandExecutor {
 
-    private final BattistaAiSpigot plugin;
+    private final FileConfiguration config = BattistaAiSpigot.getInstance().getConfig();
+    private final Logger logger = BattistaAiSpigot.getInstance().getLogger();
 
-    public AskCommand(BattistaAiSpigot plugin) {
-        this.plugin = plugin;
+    public AskCommand() {
     }
 
     /**
@@ -78,8 +81,8 @@ public class AskCommand implements CommandExecutor {
         }
 
         // Log the question if debug mode is enabled
-        if (plugin.getConfig().getBoolean("debug", false)) {
-            plugin.getLogger().info("Command /ask executed by " + player.getName() + ": " + question);
+        if (config.getBoolean("debug", false)) {
+            logger.info("Command /ask executed by " + player.getName() + ": " + question);
         }
 
         // Send the question to the AI - private response (only to the player who executed the command)

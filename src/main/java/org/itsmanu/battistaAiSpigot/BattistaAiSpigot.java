@@ -42,7 +42,7 @@ public final class BattistaAiSpigot extends JavaPlugin {
      */
     private void registerCommands() {
         // Register the /ask command
-        getCommand("ask").setExecutor(new AskCommand(this));
+        getCommand("ask").setExecutor(new AskCommand());
 
         getLogger().info("Commands successfully registered!");
     }
@@ -52,7 +52,7 @@ public final class BattistaAiSpigot extends JavaPlugin {
      */
     private void registerEvents() {
         // Register the listener for chat events
-        getServer().getPluginManager().registerEvents(new ChatListener(this), this);
+        getServer().getPluginManager().registerEvents(new ChatListener(), this);
 
         getLogger().info("Event listeners successfully registered!");
     }
