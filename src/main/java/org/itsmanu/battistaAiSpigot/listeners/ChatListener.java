@@ -90,24 +90,12 @@ public class ChatListener implements Listener {
         // If the AI helper should be activated
         if (shouldActivate && question != null && !question.isEmpty()) {
 
-            // Validate the question
-            if (question.length() < 3) {
-                // Question is too short, ignore it
-                if (config.getBoolean("debug", false)) {
-                    logger.info("Question too short, ignored");
-                }
+            // check if the question is valid
+            if (!is_question_valid(question, player)) {
                 return;
             }
 
-            if (question.length() > 500) {
-                // Question is too long, send an error message
-                Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
-                    player.sendMessage("§c[AI Helper] The question is too long! Maximum 500 characters allowed.");
-                });
-                return;
-            }
-
-            // Check if the player has the required permission (optional for automatic chat detection)
+            // Check if the player has the required permission
             if (!player.hasPermission("aihelper.ask")) {
                 if (config.getBoolean("debug", false)) {
                     logger.info("Player " + player.getName() + " does not have permission for AI helper");
@@ -127,6 +115,35 @@ public class ChatListener implements Listener {
             // Note: HttpUtil.askAIAndRespond will automatically handle thread switching
             HttpUtil.askAIAndRespond(player, finalQuestion, isPrivate);
         }
+    }
+
+    /**
+     * Validates a question based on length requirements.
+     *
+     * @param question The question to validate.
+     * @param player The player who asked the question.
+     * @return true if the question is valid, false otherwise.
+     */
+    private boolean is_question_valid(String question, Player player) {
+        // Validate the question
+        if (question.length() < 3) {
+            // Question is too short, ignore it
+            if (config.getBoolean("debug", false)) {
+                var message = ChatUtil.formatConfigMessage("messages.question_too_short", "Question too short.");
+                logger.info(message);
+            }
+            return false;
+        }
+
+        if (question.length() > 500) {
+            // Question is too long, send an error message
+            Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
+                var message = ChatUtil.formatConfigMessage("messages.question_too_long", "Max 500 characters.");
+                player.sendMessage(message);
+            });
+            return false;
+        }
+        return true;
     }
 
     /**

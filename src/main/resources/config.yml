@@ -1,3 +1,6 @@
+# Debug settings
+debug: false
+
 # HTTP endpoint URL for the AI
 endpoint:
   url: "http://localhost:8000/v2/answer"
@@ -17,8 +20,7 @@ chat:
   # Prefix for AI responses
   response_prefix: "&7[&bAI Helper&7]&f "
 
-  # Message when the AI is processing
-  processing_message: "&7[&bAI Helper&7]&e Processing your question..."
-
-# Debug settings
-debug: false
+messages:
+  question_too_short: "&cYour question is too short! Please provide more details."
+  question_too_long: "&cThe question is too long! Maximum 500 characters allowed."
+  processing: "&eProcessing your question..."

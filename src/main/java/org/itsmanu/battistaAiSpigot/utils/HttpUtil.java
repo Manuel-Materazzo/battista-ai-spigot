@@ -135,7 +135,7 @@ public class HttpUtil {
      */
     public static void askAIAndRespond(Player player, String question, boolean isPrivate) {
         // Display a processing message
-        String processingMessage = colorize(BattistaAiSpigot.getInstance().getConfig().getString("chat.processing_message"));
+        String processingMessage = ChatUtil.formatConfigMessage("messages.processing", "Processing question...");
 
         if (isPrivate) {
             player.sendMessage(processingMessage);
@@ -147,7 +147,7 @@ public class HttpUtil {
         askAI(question).thenAccept(response -> {
             // Switch back to the main thread to send the message
             Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
-                String formattedResponse = formatResponse(response);
+                String formattedResponse = ChatUtil.formatMessage(response);
 
                 if (isPrivate) {
                     var message = new MineDown(formattedResponse).toComponent();
@@ -159,8 +159,7 @@ public class HttpUtil {
         }).exceptionally(throwable -> {
             // Handle errors
             Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
-                String errorMessage = colorize(BattistaAiSpigot.getInstance().getConfig().getString("chat.response_prefix") + 
-                    "An error occurred: " + throwable.getMessage());
+                String errorMessage = ChatUtil.formatMessage("An error occurred: " + throwable.getMessage());
 
                 if (isPrivate) {
                     player.sendMessage(errorMessage);
@@ -174,24 +173,6 @@ public class HttpUtil {
         });
     }
 
-    /**
-     * Formats the AI response with the configured prefix.
-     *
-     * @param response The raw response from the AI.
-     * @return The formatted response with the prefix.
-     */
-    private static String formatResponse(String response) {
-        String prefix = BattistaAiSpigot.getInstance().getConfig().getString("chat.response_prefix");
-        return colorize(prefix + response);
-    }
 
-    /**
-     * Converts color codes to the Minecraft format.
-     *
-     * @param message The message containing color codes.
-     * @return The message with converted color codes.
-     */
-    private static String colorize(String message) {
-        return message.replace("&", "§");
-    }
+
 }
