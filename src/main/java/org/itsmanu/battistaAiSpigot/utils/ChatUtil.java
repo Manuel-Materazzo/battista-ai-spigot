@@ -28,6 +28,18 @@ public class ChatUtil {
     }
 
     /**
+     * Sends a debug message to the console if debug mode is enabled in the configuration.
+     *
+     * @param message The debug message to be sent.
+     */
+    public static void sendDebug(String message) {
+        message = formatMessage(message);
+        if (BattistaAiSpigot.getInstance().getConfig().getBoolean("debug", false)) {
+            BattistaAiSpigot.getInstance().getLogger().info(message);
+        }
+    }
+
+    /**
      * Converts color codes to the Minecraft format.
      *
      * @param message The message containing color codes.
@@ -36,4 +48,5 @@ public class ChatUtil {
     private static String colorize(String message) {
         return message.replace("&", "§");
     }
+
 }
