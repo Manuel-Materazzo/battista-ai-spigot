@@ -10,9 +10,15 @@ commands:
   ask:
     description: Ask a question to the AI helper
     usage: /ask <question>
-    permission: aihelper.ask
-
+    permission: battista.use
+  battista:
+    description: Main command
+    usage: /<command> [reload|help]
+    permission: battista.use
 permissions:
-  aihelper.ask:
-    description: Permesso per usare il comando ask
+  battista.use:
+    description: Basic permission to use the plugin
     default: true
+  battista.reload:
+    description: Plugin reload permission
+    default: op

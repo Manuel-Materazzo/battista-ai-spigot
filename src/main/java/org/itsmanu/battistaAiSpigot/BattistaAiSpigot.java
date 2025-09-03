@@ -2,6 +2,7 @@ package org.itsmanu.battistaAiSpigot;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import org.itsmanu.battistaAiSpigot.commands.AskCommand;
+import org.itsmanu.battistaAiSpigot.commands.BattistaCommand;
 import org.itsmanu.battistaAiSpigot.listeners.ChatListener;
 
 public final class BattistaAiSpigot extends JavaPlugin {
@@ -43,6 +44,8 @@ public final class BattistaAiSpigot extends JavaPlugin {
     private void registerCommands() {
         // Register the /ask command
         getCommand("ask").setExecutor(new AskCommand());
+        getCommand("battista").setExecutor(new BattistaCommand());
+        getCommand("battista").setTabCompleter(new BattistaCommand());
 
         getLogger().info("Commands successfully registered!");
     }
