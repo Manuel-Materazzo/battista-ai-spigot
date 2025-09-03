@@ -22,18 +22,18 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        // Verifica che il comando sia /battista
+        // Verify that the command is /battista
         if (!command.getName().equalsIgnoreCase("battista")) {
             return false;
         }
 
-        // Se non ci sono argomenti, mostra l'help
+        // If no arguments are provided, display the help message
         if (args.length == 0) {
             sendHelp(sender);
             return true;
         }
 
-        // Gestisce il sottocomando
+        // Handle subcommands
         switch (args[0].toLowerCase()) {
             case "reload":
                 handleReload(sender);
@@ -44,7 +44,7 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
                 break;
 
             default:
-                sender.sendMessage(ChatColor.RED + "Sottocomando sconosciuto. Usa '/battista help' per vedere i comandi disponibili.");
+                sender.sendMessage(ChatColor.RED + "Unknown subcommand. Use '/battista help' to see available commands.");
                 break;
         }
 
@@ -52,39 +52,43 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
     }
 
     /**
-     * Gestisce il comando reload
+     * Handles the reload subcommand.
+     *
+     * @param sender The sender who executed the command.
      */
     private void handleReload(CommandSender sender) {
-        // Controlla i permessi
+        // Check if the sender has the required permission
         if (!sender.hasPermission("battista.reload")) {
-            sender.sendMessage(ChatColor.RED + "Non hai il permesso per usare questo comando!");
+            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command!");
             return;
         }
 
         try {
-            // Ricarica la configurazione
+            // Reload the plugin configuration
             plugin.reloadConfig();
 
-            // Messaggio di successo
-            sender.sendMessage(ChatColor.GREEN + "Configurazione del plugin Battista ricaricata con successo!");
+            // Send a success message to the sender
+            sender.sendMessage(ChatColor.GREEN + "Battista plugin configuration successfully reloaded!");
 
-            // Log nel console
-            logger.info("Configurazione ricaricata da " + sender.getName());
+            // Log the reload action in the console
+            logger.info("Configuration reloaded by " + sender.getName());
 
         } catch (Exception e) {
-            // Gestisce eventuali errori
-            sender.sendMessage(ChatColor.RED + "Errore durante il ricaricamento della configurazione!");
-            logger.severe("Errore durante il reload: " + e.getMessage());
+            // Handle any errors during the reload process
+            sender.sendMessage(ChatColor.RED + "An error occurred while reloading the configuration!");
+            logger.severe("Error during reload: " + e.getMessage());
         }
     }
 
     /**
-     * Mostra l'help dei comandi
+     * Displays the help message for the /battista command.
+     *
+     * @param sender The sender who executed the command.
      */
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(ChatColor.GOLD + "=== Comandi Battista ===");
-        sender.sendMessage(ChatColor.YELLOW + "/battista reload" + ChatColor.WHITE + " - Ricarica la configurazione");
-        sender.sendMessage(ChatColor.YELLOW + "/battista help" + ChatColor.WHITE + " - Mostra questo messaggio");
+        sender.sendMessage(ChatColor.GOLD + "=== Battista Commands ===");
+        sender.sendMessage(ChatColor.YELLOW + "/battista reload" + ChatColor.WHITE + " - Reload the plugin configuration");
+        sender.sendMessage(ChatColor.YELLOW + "/battista help" + ChatColor.WHITE + " - Display this help message");
     }
 
     @Override
@@ -92,12 +96,12 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {
-            // Suggerimenti per il primo argomento
+            // Suggestions for the first argument
             List<String> subcommands = Arrays.asList("reload", "help");
 
             for (String subcommand : subcommands) {
                 if (subcommand.toLowerCase().startsWith(args[0].toLowerCase())) {
-                    // Controlla i permessi per il tab completion
+                    // Check permissions for tab completion
                     if (subcommand.equals("reload") && !sender.hasPermission("battista.reload")) {
                         continue;
                     }
