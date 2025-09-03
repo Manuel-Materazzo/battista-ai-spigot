@@ -1,11 +1,11 @@
 package org.itsmanu.battistaAiSpigot.commands;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
+import org.itsmanu.battistaAiSpigot.utils.ChatUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +44,8 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
                 break;
 
             default:
-                sender.sendMessage(ChatColor.RED + "Unknown subcommand. Use '/battista help' to see available commands.");
+                String message = ChatUtil.formatConfigMessage("messages.unknown_command", "Unknown subcommand.");
+                sender.sendMessage(message);
                 break;
         }
 
@@ -59,7 +60,8 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
     private void handleReload(CommandSender sender) {
         // Check if the sender has the required permission
         if (!sender.hasPermission("battista.reload")) {
-            sender.sendMessage(ChatColor.RED + "You do not have permission to use this command!");
+            String message = ChatUtil.formatConfigMessage("messages.no_permission", "You need battista.reload permission");
+            sender.sendMessage(message);
             return;
         }
 
@@ -68,15 +70,17 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
             plugin.reloadConfig();
 
             // Send a success message to the sender
-            sender.sendMessage(ChatColor.GREEN + "Battista plugin configuration successfully reloaded!");
+            String message = ChatUtil.formatConfigMessage("messages.realoaded", "Reloaded successfully");
+            sender.sendMessage(message);
 
             // Log the reload action in the console
-            logger.info("Configuration reloaded by " + sender.getName());
+            logger.info("Battista Configuration reloaded by " + sender.getName());
 
         } catch (Exception e) {
             // Handle any errors during the reload process
-            sender.sendMessage(ChatColor.RED + "An error occurred while reloading the configuration!");
-            logger.severe("Error during reload: " + e.getMessage());
+            String message = ChatUtil.formatConfigMessage("messages.not_realoaded", "Error during reload");
+            sender.sendMessage(message);
+            logger.severe("Error during Battista reload: " + e.getMessage());
         }
     }
 
@@ -86,9 +90,16 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
      * @param sender The sender who executed the command.
      */
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage(ChatColor.GOLD + "=== Battista Commands ===");
-        sender.sendMessage(ChatColor.YELLOW + "/battista reload" + ChatColor.WHITE + " - Reload the plugin configuration");
-        sender.sendMessage(ChatColor.YELLOW + "/battista help" + ChatColor.WHITE + " - Display this help message");
+        String commands = "Battista commands:\n /battista reload\n/battista help";
+        String message = ChatUtil.formatConfigMessage("messages.help", commands);
+
+        String[] lines = message.split("\n");
+
+        // Send each line with color codes translated
+        for (String line : lines) {
+            String coloredLine = ChatUtil.colorize(line);
+            sender.sendMessage(coloredLine);
+        }
     }
 
     @Override

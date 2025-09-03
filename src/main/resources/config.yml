@@ -24,3 +24,11 @@ messages:
   question_too_short: "&cYour question is too short! Please provide more details."
   question_too_long: "&cThe question is too long! Maximum 500 characters allowed."
   processing: "&eProcessing your question..."
+  unknown_command: "&cUnknown subcommand. Use '/battista help' to see available commands."
+  no_permission: "&cYou do not have permission to use this command!"
+  realoaded: "&aBattista plugin configuration successfully reloaded!"
+  not_realoaded: "&cAn error occurred while reloading the configuration!"
+  help: |-
+    &7Available commands:
+    &b/battista reload &7- Reload the plugin configuration
+    &b/battista help &7- Show this help message

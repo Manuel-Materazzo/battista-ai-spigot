@@ -45,7 +45,7 @@ public class ChatUtil {
      * @param message The message containing color codes.
      * @return The message with converted color codes.
      */
-    private static String colorize(String message) {
+    public static String colorize(String message) {
         return message.replace("&", "§");
     }
 
