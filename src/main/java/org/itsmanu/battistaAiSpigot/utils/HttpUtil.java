@@ -66,8 +66,8 @@ public class HttpUtil {
 
             // Log the request if debug mode is enabled
             if (BattistaAiSpigot.getInstance().getConfig().getBoolean("debug", false)) {
-                HttpUtil.logger.info("Sending HTTP request to: " + endpointUrl);
-                HttpUtil.logger.info("Payload: " + jsonString);
+                HttpUtil.logger.info("Sending Battista HTTP request to: " + endpointUrl);
+                HttpUtil.logger.info("Battista Payload: " + jsonString);
             }
 
             // Execute the request asynchronously
@@ -75,8 +75,9 @@ public class HttpUtil {
                 @Override
                 public void onFailure(Call call, IOException e) {
                     HttpUtil.logger.log(Level.WARNING, 
-                        "HTTP request failed: " + e.getMessage(), e);
-                    future.complete("Sorry, I cannot process your request at the moment. Please try again later.");
+                        "Battista HTTP request failed: " + e.getMessage(), e);
+                    String message = ChatUtil.formatConfigMessage("messages.cant_process", "Can't process request");
+                    future.complete(message);
                 }
 
                 @Override
@@ -87,21 +88,16 @@ public class HttpUtil {
 
                             // Log the response if debug mode is enabled
                             if (BattistaAiSpigot.getInstance().getConfig().getBoolean("debug", false)) {
-                                HttpUtil.logger.info("HTTP response received: " + responseBody);
+                                HttpUtil.logger.info("Battista HTTP response received: " + responseBody);
                             }
 
                             // Attempt to parse the response as JSON
                             try {
                                 JsonObject responseJson = gson.fromJson(responseBody, JsonObject.class);
 
-                                // Look for common fields in the response
                                 String aiResponse;
-                                if (responseJson.has("answer")) {
-                                    aiResponse = responseJson.get("answer").getAsString();
-                                } else if (responseJson.has("response")) {
+                                if (responseJson.has("response")) {
                                     aiResponse = responseJson.get("response").getAsString();
-                                } else if (responseJson.has("text")) {
-                                    aiResponse = responseJson.get("text").getAsString();
                                 } else {
                                     // If no specific fields are found, use the raw response
                                     aiResponse = responseBody;
@@ -116,8 +112,10 @@ public class HttpUtil {
 
                         } else {
                             HttpUtil.logger.warning(
-                                "Invalid HTTP response. Status code: " + response.code());
-                            future.complete("Sorry, the AI service is currently unavailable (Error " + response.code() + ")");
+                                "Invalid Battista HTTP response. Status code: " + response.code());
+                            String message = BattistaAiSpigot.getInstance().getConfig().getString("messages.cant_process", "Service unavailable, Error: ");
+                            message += response.code();
+                            future.complete(message);
                         }
                     } finally {
                         response.close();
@@ -127,8 +125,9 @@ public class HttpUtil {
 
         } catch (Exception e) {
             HttpUtil.logger.log(Level.SEVERE, 
-                "Error preparing the HTTP request", e);
-            future.complete("An internal error occurred. Please contact an administrator.");
+                "Error preparing the Battista HTTP request", e);
+            String message = ChatUtil.formatConfigMessage("messages.internal_error", "Internal Error");
+            future.complete(message);
         }
 
         return future;
@@ -153,7 +152,7 @@ public class HttpUtil {
         }
 
         // Execute the request asynchronously
-        askAI(question).thenAccept(response -> {
+         askAI(question).thenAccept(response -> {
             // Switch back to the main thread to send the message
             Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
                 String formattedResponse = ChatUtil.formatMessage(response);
@@ -177,7 +176,7 @@ public class HttpUtil {
                 }
             });
 
-            HttpUtil.logger.log(Level.SEVERE, "Error during AI request", throwable);
+            HttpUtil.logger.log(Level.SEVERE, "Error during Battista AI request", throwable);
             return null;
         });
     }
