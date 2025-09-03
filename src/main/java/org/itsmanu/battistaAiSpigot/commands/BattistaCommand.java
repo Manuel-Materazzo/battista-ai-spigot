@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
 import org.itsmanu.battistaAiSpigot.utils.ChatUtil;
+import org.itsmanu.battistaAiSpigot.utils.HttpUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,6 +69,7 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
         try {
             // Reload the plugin configuration
             plugin.reloadConfig();
+            HttpUtil.initializeHttpClient();
 
             // Send a success message to the sender
             String message = ChatUtil.formatConfigMessage("messages.realoaded", "Reloaded successfully");

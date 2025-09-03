@@ -15,12 +15,16 @@ import java.util.logging.Level;
 
 public class HttpUtil {
 
-    private static final OkHttpClient httpClient;
+    private static OkHttpClient httpClient;
     private static final Gson gson = new Gson();
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
     static {
         // Configure the HTTP client with timeout settings
+        initializeHttpClient();
+    }
+
+    public static void initializeHttpClient(){
         int timeout = BattistaAiSpigot.getInstance().getConfig().getInt("endpoint.timeout", 30);
 
         httpClient = new OkHttpClient.Builder()
