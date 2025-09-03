@@ -15,7 +15,6 @@ import java.util.logging.Logger;
  */
 public class AskCommand implements CommandExecutor {
 
-    private final FileConfiguration config = BattistaAiSpigot.getInstance().getConfig();
     private final Logger logger = BattistaAiSpigot.getInstance().getLogger();
 
     public AskCommand() {
@@ -32,6 +31,7 @@ public class AskCommand implements CommandExecutor {
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+
         // Check if arguments are provided
         if (args.length == 0) {
             sender.sendMessage("§cUsage: /ask <question>");
@@ -81,6 +81,7 @@ public class AskCommand implements CommandExecutor {
         }
 
         // Log the question if debug mode is enabled
+        FileConfiguration config = BattistaAiSpigot.getInstance().getConfig();
         if (config.getBoolean("debug", false)) {
             logger.info("Command /ask executed by " + player.getName() + ": " + question);
         }

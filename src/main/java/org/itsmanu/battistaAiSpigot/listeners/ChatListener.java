@@ -17,7 +17,6 @@ import java.util.regex.Pattern;
 
 public class ChatListener implements Listener {
 
-    private final FileConfiguration config = BattistaAiSpigot.getInstance().getConfig();
     private final Logger logger = BattistaAiSpigot.getInstance().getLogger();
 
     private final PlainTextComponentSerializer plainTextSerializer = PlainTextComponentSerializer.plainText();
@@ -45,12 +44,13 @@ public class ChatListener implements Listener {
         ChatUtil.sendDebug("Chat message from " + player.getName() + ": " + message);
 
         // get configs
+        FileConfiguration config = BattistaAiSpigot.getInstance().getConfig();
         boolean autoDetectQuestions = config.getBoolean("chat.auto_detect_questions", true);
         String tag = config.getString("chat.tag", "@Helper");
 
         String question = null;
         // Check if the message contains the tag (e.g., @Helper)
-        if (hasTag(message, tag)) {
+        if (hasTag(config, message, tag)) {
             // Remove the tag from the message
             question = extractQuestion(message, tag);
         }
@@ -61,7 +61,7 @@ public class ChatListener implements Listener {
         }
 
         // check if the question is valid
-        if (!is_question_valid(question, player)) {
+        if (!is_question_valid(config, question, player)) {
             return;
         }
 
@@ -83,7 +83,7 @@ public class ChatListener implements Listener {
      * @param tag     The tag to look for in the message.
      * @return true if the tag is found and tagging is enabled, false otherwise.
      */
-    private boolean hasTag(String message, String tag) {
+    private boolean hasTag(FileConfiguration config, String message, String tag) {
         // get configs
         boolean taggingEnabled = config.getBoolean("chat.tagging.enabled", true);
 
@@ -101,7 +101,7 @@ public class ChatListener implements Listener {
      * @param player   The player who asked the question.
      * @return true if the question is valid, false otherwise.
      */
-    private boolean is_question_valid(String question, Player player) {
+    private boolean is_question_valid(FileConfiguration config, String question, Player player) {
 
         if (question == null || question.isEmpty()) {
             return false;

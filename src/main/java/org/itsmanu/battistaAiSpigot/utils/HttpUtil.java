@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class HttpUtil {
 
@@ -19,11 +20,15 @@ public class HttpUtil {
     private static final Gson gson = new Gson();
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
+    private static final Logger logger = BattistaAiSpigot.getInstance().getLogger();
+
     static {
-        // Configure the HTTP client with timeout settings
         initializeHttpClient();
     }
 
+    /**
+     * Initializes the HTTP client with timeout settings from the configuration.
+     */
     public static void initializeHttpClient(){
         int timeout = BattistaAiSpigot.getInstance().getConfig().getInt("endpoint.timeout", 30);
 
@@ -61,15 +66,15 @@ public class HttpUtil {
 
             // Log the request if debug mode is enabled
             if (BattistaAiSpigot.getInstance().getConfig().getBoolean("debug", false)) {
-                BattistaAiSpigot.getInstance().getLogger().info("Sending HTTP request to: " + endpointUrl);
-                BattistaAiSpigot.getInstance().getLogger().info("Payload: " + jsonString);
+                HttpUtil.logger.info("Sending HTTP request to: " + endpointUrl);
+                HttpUtil.logger.info("Payload: " + jsonString);
             }
 
             // Execute the request asynchronously
             httpClient.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    BattistaAiSpigot.getInstance().getLogger().log(Level.WARNING, 
+                    HttpUtil.logger.log(Level.WARNING, 
                         "HTTP request failed: " + e.getMessage(), e);
                     future.complete("Sorry, I cannot process your request at the moment. Please try again later.");
                 }
@@ -82,7 +87,7 @@ public class HttpUtil {
 
                             // Log the response if debug mode is enabled
                             if (BattistaAiSpigot.getInstance().getConfig().getBoolean("debug", false)) {
-                                BattistaAiSpigot.getInstance().getLogger().info("HTTP response received: " + responseBody);
+                                HttpUtil.logger.info("HTTP response received: " + responseBody);
                             }
 
                             // Attempt to parse the response as JSON
@@ -110,7 +115,7 @@ public class HttpUtil {
                             }
 
                         } else {
-                            BattistaAiSpigot.getInstance().getLogger().warning(
+                            HttpUtil.logger.warning(
                                 "Invalid HTTP response. Status code: " + response.code());
                             future.complete("Sorry, the AI service is currently unavailable (Error " + response.code() + ")");
                         }
@@ -121,7 +126,7 @@ public class HttpUtil {
             });
 
         } catch (Exception e) {
-            BattistaAiSpigot.getInstance().getLogger().log(Level.SEVERE, 
+            HttpUtil.logger.log(Level.SEVERE, 
                 "Error preparing the HTTP request", e);
             future.complete("An internal error occurred. Please contact an administrator.");
         }
@@ -172,7 +177,7 @@ public class HttpUtil {
                 }
             });
 
-            BattistaAiSpigot.getInstance().getLogger().log(Level.SEVERE, "Error during AI request", throwable);
+            HttpUtil.logger.log(Level.SEVERE, "Error during AI request", throwable);
             return null;
         });
     }
