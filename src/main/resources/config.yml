@@ -5,8 +5,11 @@ endpoint:
 
 # Chat settings
 chat:
-  # Tag for activation in chat (e.g., @Helper)
-  tag: "@Helper"
+  # AI helper responds when tagged in cha
+  tagging:
+    enabled: true
+    # Tag for activation in chat (e.g., @Helper)
+    tag: "@Helper"
 
   # Automatic question detection (looks for ? at the end of the message)
   auto_detect_questions: true

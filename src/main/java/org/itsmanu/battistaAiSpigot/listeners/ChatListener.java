@@ -23,6 +23,7 @@ public class ChatListener implements Listener {
     private final PlainTextComponentSerializer plainTextSerializer = PlainTextComponentSerializer.plainText();
 
     private final boolean autoDetectQuestions = config.getBoolean("chat.auto_detect_questions", true);
+    private final boolean taggingEnabled = config.getBoolean("chat.tagging.enabled", true);
 
     // Pattern to detect questions (ends with ? optionally followed by spaces)
     private static final Pattern QUESTION_PATTERN = Pattern.compile(".*\\?\\s*$");
@@ -66,8 +67,8 @@ public class ChatListener implements Listener {
         boolean shouldActivate = false;
 
         // 1. Check if the message contains the tag (e.g., @Helper)
-        String tag = config.getString("chat.tag", "@Helper");
-        if (message.toLowerCase().contains(tag.toLowerCase())) {
+        String tag = config.getString("chat.tagging.tag", "@Helper");
+        if (taggingEnabled && message.toLowerCase().contains(tag.toLowerCase())) {
             // Remove the tag from the message to extract the question
             question = tagPattern.matcher(message).replaceAll("").trim();
             shouldActivate = true;
