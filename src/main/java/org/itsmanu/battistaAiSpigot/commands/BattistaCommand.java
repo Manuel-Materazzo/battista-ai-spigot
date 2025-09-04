@@ -7,6 +7,7 @@ import org.bukkit.command.TabCompleter;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
 import org.itsmanu.battistaAiSpigot.utils.ChatUtil;
 import org.itsmanu.battistaAiSpigot.utils.HttpUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,7 +31,7 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
      * @return true if the command was handled successfully, false otherwise.
      */
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, Command command, @NotNull String label, String[] args) {
 
         // Verify that the command is /battista
         if (!command.getName().equalsIgnoreCase("battista")) {
@@ -123,7 +124,7 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
      * @return A list of possible completions for the current argument.
      */
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
         List<String> completions = new ArrayList<>();
 
         if (args.length == 1) {

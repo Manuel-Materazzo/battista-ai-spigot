@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
 import org.itsmanu.battistaAiSpigot.utils.ChatUtil;
 import org.itsmanu.battistaAiSpigot.utils.HttpUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Logger;
 
@@ -31,7 +32,7 @@ public class AskCommand implements CommandExecutor {
      * @return true if the command was successfully executed, false otherwise.
      */
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
 
         // Check if arguments are provided
         if (args.length == 0) {

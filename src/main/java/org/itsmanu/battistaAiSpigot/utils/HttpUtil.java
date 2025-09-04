@@ -6,6 +6,7 @@ import okhttp3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
@@ -72,7 +73,7 @@ public class HttpUtil {
             // Execute the request asynchronously
             httpClient.newCall(request).enqueue(new Callback() {
                 @Override
-                public void onFailure(Call call, IOException e) {
+                public void onFailure(@NotNull Call call, @NotNull IOException e) {
                     HttpUtil.logger.log(Level.WARNING,
                             "Battista HTTP request failed: " + e.getMessage(), e);
                     var message = BattistaAiSpigot.getConfigs().getString("messages.cant_process", "Can't process request");
@@ -80,7 +81,7 @@ public class HttpUtil {
                 }
 
                 @Override
-                public void onResponse(Call call, Response response) throws IOException {
+                public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
                     try {
                         if (response.isSuccessful()) {
                             String responseBody = response.body().string();
