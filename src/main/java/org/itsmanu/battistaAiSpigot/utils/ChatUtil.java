@@ -1,5 +1,7 @@
 package org.itsmanu.battistaAiSpigot.utils;
 
+import de.themoep.minedown.adventure.MineDown;
+import net.kyori.adventure.text.Component;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
 
 public class ChatUtil {
@@ -11,7 +13,7 @@ public class ChatUtil {
      * @param def The default message to use if the path is not found.
      * @return The formatted message with the prefix and color codes.
      */
-    public static String formatConfigMessage(String path, String def) {
+    public static Component formatConfigMessage(String path, String def) {
         var message = BattistaAiSpigot.getInstance().getConfig().getString(path, def);
         return formatMessage(message);
     }
@@ -22,9 +24,9 @@ public class ChatUtil {
      * @param message The raw message.
      * @return The formatted message with the prefix.
      */
-    public static String formatMessage(String message) {
+    public static Component formatMessage(String message) {
         String prefix = BattistaAiSpigot.getInstance().getConfig().getString("chat.response_prefix");
-        return colorize(prefix + message);
+        return new MineDown(prefix + message).toComponent();
     }
 
     /**
@@ -33,20 +35,10 @@ public class ChatUtil {
      * @param message The debug message to be sent.
      */
     public static void sendDebug(String message) {
-        message = formatMessage(message);
+        message = formatMessage(message).toString();
         if (BattistaAiSpigot.getInstance().getConfig().getBoolean("debug", false)) {
             BattistaAiSpigot.getInstance().getLogger().info(message);
         }
-    }
-
-    /**
-     * Converts color codes to the Minecraft format.
-     *
-     * @param message The message containing color codes.
-     * @return The message with converted color codes.
-     */
-    public static String colorize(String message) {
-        return message.replace("&", "§");
     }
 
 }

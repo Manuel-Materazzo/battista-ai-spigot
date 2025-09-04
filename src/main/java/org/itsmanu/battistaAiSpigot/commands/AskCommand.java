@@ -36,21 +36,21 @@ public class AskCommand implements CommandExecutor {
         // Check if arguments are provided
         if (args.length == 0) {
             String commands = "Usage: /ask <question>\nExample: /ask How do I craft a diamond sword?";
-            String message = ChatUtil.formatConfigMessage("messages.ask_usage", commands);
+            var message = BattistaAiSpigot.getInstance().getConfig().getString("messages.ask_usage", commands);
 
             String[] lines = message.split("\n");
 
             // Send each line with color codes translated
             for (String line : lines) {
-                String coloredLine = ChatUtil.colorize(line);
-                sender.sendMessage(coloredLine);
+                var formattedLine = ChatUtil.formatMessage(line);
+                sender.sendMessage(formattedLine);
             }
             return true;
         }
 
         // Ensure the sender is a player
         if (!(sender instanceof Player)) {
-            String message = ChatUtil.formatConfigMessage("messages.only_players", "You're not a player!");
+            var message = ChatUtil.formatConfigMessage("messages.only_players", "You're not a player!");
             sender.sendMessage(message);
             return true;
         }
@@ -59,7 +59,7 @@ public class AskCommand implements CommandExecutor {
 
         // Check if the player has the required permission
         if (!player.hasPermission("battista.use")) {
-            String message = ChatUtil.formatConfigMessage("messages.no_permission", "You need battista.use permission");
+            var message = ChatUtil.formatConfigMessage("messages.no_permission", "You need battista.use permission");
             player.sendMessage(message);
             return true;
         }
@@ -77,19 +77,19 @@ public class AskCommand implements CommandExecutor {
 
         // Validate the question
         if (question.isEmpty()) {
-            String message = ChatUtil.formatConfigMessage("messages.empty_question", "Empty question");
+            var message = ChatUtil.formatConfigMessage("messages.empty_question", "Empty question");
             player.sendMessage(message);
             return true;
         }
 
         if (question.length() < 3) {
-            String message = ChatUtil.formatConfigMessage("messages.question_too_short", "Question too short");
+            var message = ChatUtil.formatConfigMessage("messages.question_too_short", "Question too short");
             player.sendMessage(message);
             return true;
         }
 
         if (question.length() > 500) {
-            String message = ChatUtil.formatConfigMessage("messages.question_too_long", "Question too long");
+            var message = ChatUtil.formatConfigMessage("messages.question_too_long", "Question too long");
             player.sendMessage(message);
             return true;
         }

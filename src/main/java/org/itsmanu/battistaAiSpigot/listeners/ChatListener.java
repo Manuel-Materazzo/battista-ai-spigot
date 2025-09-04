@@ -111,7 +111,7 @@ public class ChatListener implements Listener {
             // Question is too short, ignore it
             if (config.getBoolean("debug", false)) {
                 var message = ChatUtil.formatConfigMessage("messages.question_too_short", "Question too short.");
-                logger.info(message);
+                logger.info(message.toString());
             }
             return false;
         }

@@ -2,7 +2,6 @@ package org.itsmanu.battistaAiSpigot.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import de.themoep.minedown.adventure.MineDown;
 import okhttp3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -29,7 +28,7 @@ public class HttpUtil {
     /**
      * Initializes the HTTP client with timeout settings from the configuration.
      */
-    public static void initializeHttpClient(){
+    public static void initializeHttpClient() {
         int timeout = BattistaAiSpigot.getInstance().getConfig().getInt("endpoint.timeout", 30);
 
         httpClient = new OkHttpClient.Builder()
@@ -41,7 +40,7 @@ public class HttpUtil {
 
     /**
      * Sends a question to the AI endpoint asynchronously.
-     * 
+     *
      * @param question The question to send.
      * @return A CompletableFuture containing the AI's response.
      */
@@ -74,9 +73,9 @@ public class HttpUtil {
             httpClient.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    HttpUtil.logger.log(Level.WARNING, 
-                        "Battista HTTP request failed: " + e.getMessage(), e);
-                    String message = ChatUtil.formatConfigMessage("messages.cant_process", "Can't process request");
+                    HttpUtil.logger.log(Level.WARNING,
+                            "Battista HTTP request failed: " + e.getMessage(), e);
+                    var message = BattistaAiSpigot.getInstance().getConfig().getString("messages.cant_process", "Can't process request");
                     future.complete(message);
                 }
 
@@ -112,7 +111,7 @@ public class HttpUtil {
 
                         } else {
                             HttpUtil.logger.warning(
-                                "Invalid Battista HTTP response. Status code: " + response.code());
+                                    "Invalid Battista HTTP response. Status code: " + response.code());
                             String message = BattistaAiSpigot.getInstance().getConfig().getString("messages.cant_process", "Service unavailable, Error: ");
                             message += response.code();
                             future.complete(message);
@@ -124,9 +123,9 @@ public class HttpUtil {
             });
 
         } catch (Exception e) {
-            HttpUtil.logger.log(Level.SEVERE, 
-                "Error preparing the Battista HTTP request", e);
-            String message = ChatUtil.formatConfigMessage("messages.internal_error", "Internal Error");
+            HttpUtil.logger.log(Level.SEVERE,
+                    "Error preparing the Battista HTTP request", e);
+            var message = BattistaAiSpigot.getInstance().getConfig().getString("messages.internal_error", "Internal Error");
             future.complete(message);
         }
 
@@ -136,43 +135,42 @@ public class HttpUtil {
     /**
      * Sends a question to the AI and responds to the player.
      * This method automatically handles thread switching to avoid issues with the Bukkit API.
-     * 
+     *
      * @param player    The player who asked the question.
      * @param question  The question to send.
      * @param isPrivate Whether the response should be private (only to the player) or public (in chat).
      */
     public static void askAIAndRespond(Player player, String question, boolean isPrivate) {
         // Display a processing message
-        String processingMessage = ChatUtil.formatConfigMessage("messages.processing", "Processing question...");
+        var processingMessage = ChatUtil.formatConfigMessage("messages.processing", "Processing question...");
 
         if (isPrivate) {
             player.sendMessage(processingMessage);
         } else {
-            Bukkit.broadcastMessage(processingMessage);
+            Bukkit.broadcast(processingMessage);
         }
 
         // Execute the request asynchronously
-         askAI(question).thenAccept(response -> {
+        askAI(question).thenAccept(response -> {
             // Switch back to the main thread to send the message
             Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
-                String formattedResponse = ChatUtil.formatMessage(response);
+                var formattedResponse = ChatUtil.formatMessage(response);
 
                 if (isPrivate) {
-                    var message = new MineDown(formattedResponse).toComponent();
-                    player.sendMessage(message);
+                    player.sendMessage(formattedResponse);
                 } else {
-                    Bukkit.broadcastMessage(formattedResponse);
+                    Bukkit.broadcast(formattedResponse);
                 }
             });
         }).exceptionally(throwable -> {
             // Handle errors
             Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
-                String errorMessage = ChatUtil.formatMessage("An error occurred: " + throwable.getMessage());
+                var errorMessage = ChatUtil.formatMessage("An error occurred: " + throwable.getMessage());
 
                 if (isPrivate) {
                     player.sendMessage(errorMessage);
                 } else {
-                    Bukkit.broadcastMessage(errorMessage);
+                    Bukkit.broadcast(errorMessage);
                 }
             });
 
@@ -180,7 +178,6 @@ public class HttpUtil {
             return null;
         });
     }
-
 
 
 }

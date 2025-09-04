@@ -45,7 +45,7 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
                 break;
 
             default:
-                String message = ChatUtil.formatConfigMessage("messages.unknown_command", "Unknown subcommand.");
+                var message = ChatUtil.formatConfigMessage("messages.unknown_command", "Unknown subcommand.");
                 sender.sendMessage(message);
                 break;
         }
@@ -61,7 +61,7 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
     private void handleReload(CommandSender sender) {
         // Check if the sender has the required permission
         if (!sender.hasPermission("battista.reload")) {
-            String message = ChatUtil.formatConfigMessage("messages.no_permission", "You need battista.reload permission");
+            var message = ChatUtil.formatConfigMessage("messages.no_permission", "You need battista.reload permission");
             sender.sendMessage(message);
             return;
         }
@@ -72,7 +72,7 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
             HttpUtil.initializeHttpClient();
 
             // Send a success message to the sender
-            String message = ChatUtil.formatConfigMessage("messages.realoaded", "Reloaded successfully");
+            var message = ChatUtil.formatConfigMessage("messages.realoaded", "Reloaded successfully");
             sender.sendMessage(message);
 
             // Log the reload action in the console
@@ -80,7 +80,7 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
 
         } catch (Exception e) {
             // Handle any errors during the reload process
-            String message = ChatUtil.formatConfigMessage("messages.not_realoaded", "Error during reload");
+            var message = ChatUtil.formatConfigMessage("messages.not_realoaded", "Error during reload");
             sender.sendMessage(message);
             logger.severe("Error during Battista reload: " + e.getMessage());
         }
@@ -93,14 +93,14 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
      */
     private void sendHelp(CommandSender sender) {
         String commands = "Battista commands:\n /battista reload\n/battista help";
-        String message = ChatUtil.formatConfigMessage("messages.help", commands);
+        var message = BattistaAiSpigot.getInstance().getConfig().getString("messages.help", commands);
 
         String[] lines = message.split("\n");
 
         // Send each line with color codes translated
         for (String line : lines) {
-            String coloredLine = ChatUtil.colorize(line);
-            sender.sendMessage(coloredLine);
+            var formattedLine = ChatUtil.formatMessage(line);
+            sender.sendMessage(formattedLine);
         }
     }
 
