@@ -50,13 +50,11 @@ public class AskCommand implements CommandExecutor {
         }
 
         // Ensure the sender is a player
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             var message = ChatUtil.formatConfigMessage("messages.only_players", "You're not a player!");
             sender.sendMessage(message);
             return true;
         }
-
-        Player player = (Player) sender;
 
         // Check if the player has the required permission
         if (!player.hasPermission("battista.use")) {

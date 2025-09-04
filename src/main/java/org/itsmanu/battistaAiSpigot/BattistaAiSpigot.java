@@ -6,6 +6,8 @@ import org.itsmanu.battistaAiSpigot.commands.AskCommand;
 import org.itsmanu.battistaAiSpigot.commands.BattistaCommand;
 import org.itsmanu.battistaAiSpigot.listeners.ChatListener;
 
+import java.util.Objects;
+
 public final class BattistaAiSpigot extends JavaPlugin {
 
     private static BattistaAiSpigot instance;
@@ -48,11 +50,14 @@ public final class BattistaAiSpigot extends JavaPlugin {
      * Registers all commands for the plugin.
      */
     private void registerCommands() {
-        // Register the /ask command
-        getCommand("ask").setExecutor(new AskCommand());
-        getCommand("battista").setExecutor(new BattistaCommand());
-        getCommand("battista").setTabCompleter(new BattistaCommand());
-
+        // Register commands
+        try {
+            Objects.requireNonNull(getCommand("ask")).setExecutor(new AskCommand());
+            Objects.requireNonNull(getCommand("battista")).setExecutor(new BattistaCommand());
+            Objects.requireNonNull(getCommand("battista")).setTabCompleter(new BattistaCommand());
+        } catch (NullPointerException e) {
+            getLogger().severe("Unable to register Battista command, please check your plugin.yml");
+        }
         getLogger().info("Battista Commands successfully registered!");
     }
 

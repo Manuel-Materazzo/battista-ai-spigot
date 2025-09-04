@@ -82,43 +82,42 @@ public class HttpUtil {
 
                 @Override
                 public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                    try {
-                        if (response.isSuccessful()) {
-                            String responseBody = response.body().string();
-
-                            // Log the response if debug mode is enabled
-                            if (BattistaAiSpigot.getConfigs().getBoolean("debug", false)) {
-                                HttpUtil.logger.info("Battista HTTP response received: " + responseBody);
-                            }
-
-                            // Attempt to parse the response as JSON
-                            try {
-                                JsonObject responseJson = gson.fromJson(responseBody, JsonObject.class);
-
-                                String aiResponse;
-                                if (responseJson.has("response")) {
-                                    aiResponse = responseJson.get("response").getAsString();
-                                } else {
-                                    // If no specific fields are found, use the raw response
-                                    aiResponse = responseBody;
-                                }
-
-                                future.complete(aiResponse);
-
-                            } catch (Exception e) {
-                                // If JSON parsing fails, use the raw response
-                                future.complete(responseBody);
-                            }
-
-                        } else {
+                    try (response) {
+                        // on rest errors
+                        if (!response.isSuccessful() || response.body() == null) {
                             HttpUtil.logger.warning(
                                     "Invalid Battista HTTP response. Status code: " + response.code());
                             String message = BattistaAiSpigot.getConfigs().getString("messages.cant_process", "Service unavailable, Error: ");
                             message += response.code();
                             future.complete(message);
+                            return;
                         }
-                    } finally {
-                        response.close();
+
+                        String responseBody = response.body().string();
+
+                        // Log the response if debug mode is enabled
+                        if (BattistaAiSpigot.getConfigs().getBoolean("debug", false)) {
+                            HttpUtil.logger.info("Battista HTTP response received: " + responseBody);
+                        }
+
+                        // Attempt to parse the response as JSON
+                        try {
+                            JsonObject responseJson = gson.fromJson(responseBody, JsonObject.class);
+
+                            String aiResponse;
+                            if (responseJson.has("response")) {
+                                aiResponse = responseJson.get("response").getAsString();
+                            } else {
+                                // If no specific fields are found, use the raw response
+                                aiResponse = responseBody;
+                            }
+
+                            future.complete(aiResponse);
+
+                        } catch (Exception e) {
+                            // If JSON parsing fails, use the raw response
+                            future.complete(responseBody);
+                        }
                     }
                 }
             });
