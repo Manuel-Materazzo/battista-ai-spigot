@@ -29,7 +29,7 @@ public class HttpUtil {
      * Initializes the HTTP client with timeout settings from the configuration.
      */
     public static void initializeHttpClient() {
-        int timeout = BattistaAiSpigot.getInstance().getConfig().getInt("endpoint.timeout", 30);
+        int timeout = BattistaAiSpigot.getConfigs().getInt("endpoint.timeout", 30);
 
         httpClient = new OkHttpClient.Builder()
                 .connectTimeout(timeout, TimeUnit.SECONDS)
@@ -55,7 +55,7 @@ public class HttpUtil {
             String jsonString = gson.toJson(requestBody);
 
             // Prepare the HTTP request
-            String endpointUrl = BattistaAiSpigot.getInstance().getConfig().getString("endpoint.url");
+            String endpointUrl = BattistaAiSpigot.getConfigs().getString("endpoint.url", "http://localhost:8000/v2/answer");
 
             Request request = new Request.Builder()
                     .url(endpointUrl)
@@ -64,7 +64,7 @@ public class HttpUtil {
                     .build();
 
             // Log the request if debug mode is enabled
-            if (BattistaAiSpigot.getInstance().getConfig().getBoolean("debug", false)) {
+            if (BattistaAiSpigot.getConfigs().getBoolean("debug", false)) {
                 HttpUtil.logger.info("Sending Battista HTTP request to: " + endpointUrl);
                 HttpUtil.logger.info("Battista Payload: " + jsonString);
             }
@@ -75,7 +75,7 @@ public class HttpUtil {
                 public void onFailure(Call call, IOException e) {
                     HttpUtil.logger.log(Level.WARNING,
                             "Battista HTTP request failed: " + e.getMessage(), e);
-                    var message = BattistaAiSpigot.getInstance().getConfig().getString("messages.cant_process", "Can't process request");
+                    var message = BattistaAiSpigot.getConfigs().getString("messages.cant_process", "Can't process request");
                     future.complete(message);
                 }
 
@@ -86,7 +86,7 @@ public class HttpUtil {
                             String responseBody = response.body().string();
 
                             // Log the response if debug mode is enabled
-                            if (BattistaAiSpigot.getInstance().getConfig().getBoolean("debug", false)) {
+                            if (BattistaAiSpigot.getConfigs().getBoolean("debug", false)) {
                                 HttpUtil.logger.info("Battista HTTP response received: " + responseBody);
                             }
 
@@ -112,7 +112,7 @@ public class HttpUtil {
                         } else {
                             HttpUtil.logger.warning(
                                     "Invalid Battista HTTP response. Status code: " + response.code());
-                            String message = BattistaAiSpigot.getInstance().getConfig().getString("messages.cant_process", "Service unavailable, Error: ");
+                            String message = BattistaAiSpigot.getConfigs().getString("messages.cant_process", "Service unavailable, Error: ");
                             message += response.code();
                             future.complete(message);
                         }
@@ -125,7 +125,7 @@ public class HttpUtil {
         } catch (Exception e) {
             HttpUtil.logger.log(Level.SEVERE,
                     "Error preparing the Battista HTTP request", e);
-            var message = BattistaAiSpigot.getInstance().getConfig().getString("messages.internal_error", "Internal Error");
+            var message = BattistaAiSpigot.getConfigs().getString("messages.internal_error", "Internal Error");
             future.complete(message);
         }
 

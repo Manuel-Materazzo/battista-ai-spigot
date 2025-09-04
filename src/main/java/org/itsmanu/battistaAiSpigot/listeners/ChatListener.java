@@ -44,7 +44,7 @@ public class ChatListener implements Listener {
         ChatUtil.sendDebug("Chat message from " + player.getName() + ": " + message);
 
         // get configs
-        FileConfiguration config = BattistaAiSpigot.getInstance().getConfig();
+        FileConfiguration config = BattistaAiSpigot.getConfigs();
         boolean autoDetectQuestions = config.getBoolean("chat.auto_detect_questions", true);
         String tag = config.getString("chat.tag", "@Helper");
 

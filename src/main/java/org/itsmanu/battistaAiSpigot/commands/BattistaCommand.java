@@ -93,7 +93,7 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
      */
     private void sendHelp(CommandSender sender) {
         String commands = "Battista commands:\n /battista reload\n/battista help";
-        var message = BattistaAiSpigot.getInstance().getConfig().getString("messages.help", commands);
+        var message = BattistaAiSpigot.getConfigs().getString("messages.help", commands);
 
         String[] lines = message.split("\n");
 

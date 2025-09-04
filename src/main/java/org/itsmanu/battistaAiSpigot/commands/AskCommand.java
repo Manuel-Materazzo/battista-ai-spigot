@@ -36,7 +36,7 @@ public class AskCommand implements CommandExecutor {
         // Check if arguments are provided
         if (args.length == 0) {
             String commands = "Usage: /ask <question>\nExample: /ask How do I craft a diamond sword?";
-            var message = BattistaAiSpigot.getInstance().getConfig().getString("messages.ask_usage", commands);
+            var message = BattistaAiSpigot.getConfigs().getString("messages.ask_usage", commands);
 
             String[] lines = message.split("\n");
 
@@ -95,7 +95,7 @@ public class AskCommand implements CommandExecutor {
         }
 
         // Log the question if debug mode is enabled
-        FileConfiguration config = BattistaAiSpigot.getInstance().getConfig();
+        FileConfiguration config = BattistaAiSpigot.getConfigs();
         if (config.getBoolean("debug", false)) {
             logger.info("Command /ask executed by " + player.getName() + ": " + question);
         }

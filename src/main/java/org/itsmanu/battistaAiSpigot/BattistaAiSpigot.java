@@ -1,5 +1,6 @@
 package org.itsmanu.battistaAiSpigot;
 
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.itsmanu.battistaAiSpigot.commands.AskCommand;
 import org.itsmanu.battistaAiSpigot.commands.BattistaCommand;
@@ -67,5 +68,14 @@ public final class BattistaAiSpigot extends JavaPlugin {
      */
     public static BattistaAiSpigot getInstance() {
         return instance;
+    }
+
+    /**
+     * Retrieves the plugin's configuration file.
+     *
+     * @return The FileConfiguration object containing the plugin's settings.
+     */
+    public static FileConfiguration getConfigs() {
+        return instance.getConfig();
     }
 }

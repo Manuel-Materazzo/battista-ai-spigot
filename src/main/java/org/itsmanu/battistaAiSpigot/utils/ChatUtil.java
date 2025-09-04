@@ -14,7 +14,7 @@ public class ChatUtil {
      * @return The formatted message with the prefix and color codes.
      */
     public static Component formatConfigMessage(String path, String def) {
-        var message = BattistaAiSpigot.getInstance().getConfig().getString(path, def);
+        var message = BattistaAiSpigot.getConfigs().getString(path, def);
         return formatMessage(message);
     }
 
@@ -25,7 +25,7 @@ public class ChatUtil {
      * @return The formatted message with the prefix.
      */
     public static Component formatMessage(String message) {
-        String prefix = BattistaAiSpigot.getInstance().getConfig().getString("chat.response_prefix");
+        String prefix = BattistaAiSpigot.getConfigs().getString("chat.response_prefix");
         return new MineDown(prefix + message).toComponent();
     }
 
@@ -36,7 +36,7 @@ public class ChatUtil {
      */
     public static void sendDebug(String message) {
         message = formatMessage(message).toString();
-        if (BattistaAiSpigot.getInstance().getConfig().getBoolean("debug", false)) {
+        if (BattistaAiSpigot.getConfigs().getBoolean("debug", false)) {
             BattistaAiSpigot.getInstance().getLogger().info(message);
         }
     }
