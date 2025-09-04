@@ -10,6 +10,11 @@ public final class BattistaAiSpigot extends JavaPlugin {
 
     private static BattistaAiSpigot instance;
 
+    /**
+     * Called when the plugin is enabled. Initializes the plugin by setting up the instance,
+     * saving the default configuration, registering commands and event listeners, and logging
+     * the plugin's status and configuration details.
+     */
     @Override
     public void onEnable() {
         // Set the instance of the plugin

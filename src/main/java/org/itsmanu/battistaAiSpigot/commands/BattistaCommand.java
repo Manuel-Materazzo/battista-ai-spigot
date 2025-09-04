@@ -20,6 +20,15 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
     public BattistaCommand() {
     }
 
+    /**
+     * Handles the execution of the /battista command.
+     *
+     * @param sender The sender who executed the command.
+     * @param command The command that was executed.
+     * @param label The alias of the command used.
+     * @param args The arguments passed with the command.
+     * @return true if the command was handled successfully, false otherwise.
+     */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
@@ -104,6 +113,15 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    /**
+     * Provides tab completion for the /battista command.
+     *
+     * @param sender The sender who is requesting tab completion.
+     * @param command The command for which tab completion is being requested.
+     * @param alias The alias of the command used.
+     * @param args The arguments that have been provided so far.
+     * @return A list of possible completions for the current argument.
+     */
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
