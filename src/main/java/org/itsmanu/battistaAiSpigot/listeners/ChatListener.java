@@ -66,7 +66,7 @@ public class ChatListener implements Listener {
         }
 
         // Check if the player has the required permission
-        if (!player.hasPermission("aihelper.ask")) {
+        if (!player.hasPermission("battista.use")) {
             ChatUtil.sendDebug("Player " + player.getName() + " does not have permission for AI helper");
             return;
         }
