@@ -87,7 +87,7 @@ public class AskCommand implements CommandExecutor {
             return true;
         }
 
-        if (question.length() > 500) {
+        if (question.length() > 150) {
             var message = ChatUtil.formatConfigMessage("messages.question_too_long", "Question too long");
             player.sendMessage(message);
             return true;

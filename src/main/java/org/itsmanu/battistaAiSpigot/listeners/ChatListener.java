@@ -116,10 +116,10 @@ public class ChatListener implements Listener {
             return false;
         }
 
-        if (question.length() > 500) {
+        if (question.length() > 150) {
             // Question is too long, send an error message
             Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
-                var message = ChatUtil.formatConfigMessage("messages.question_too_long", "Max 500 characters.");
+                var message = ChatUtil.formatConfigMessage("messages.question_too_long", "Max 150 characters.");
                 player.sendMessage(message);
             });
             return false;

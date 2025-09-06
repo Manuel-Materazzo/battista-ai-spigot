@@ -22,7 +22,7 @@ chat:
 
 messages:
   question_too_short: "&cYour question is too short! Please provide more details."
-  question_too_long: "&cThe question is too long! Maximum 500 characters allowed."
+  question_too_long: "&cThe question is too long! Maximum 150 characters allowed."
   processing: "&eProcessing your question..."
   cant_process: "&cSorry, I cannot process your request at the moment. Please try again later."
   service_unavailable: "&cSorry, the AI service is currently unavailable, Error: "
