@@ -81,7 +81,7 @@ Edit everything in `config.yml`.
   ```
 
 - **Messages:**  
-  All plugin responses are customizable. They also support [pseudo-mardown](https://github.com/Manuel-Materazzo/battista-ai-backend/blob/master/SYNTAX_HELP.md)!
+  All plugin responses are customizable. They also support [pseudo-mardown](https://github.com/Manuel-Materazzo/battista-ai-spigot/blob/master/SYNTAX_HELP.md)!
 
 ---
 
