@@ -1,5 +1,6 @@
 package org.itsmanu.battistaAiSpigot.commands;
 
+import de.themoep.minedown.adventure.MineDown;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -122,7 +123,7 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
 
         // Send each line with color codes translated
         for (String line : lines) {
-            var formattedLine = ChatUtil.formatMessage(line);
+            var formattedLine = new MineDown(line).toComponent();
             sender.sendMessage(formattedLine);
         }
     }
