@@ -5,6 +5,7 @@ api-version: 1.21
 authors:
   - manuel-materazzo
 description: A plugin AI helper that answers users' questions
+softdepend: [ProtocolLib]
 
 commands:
   ask:

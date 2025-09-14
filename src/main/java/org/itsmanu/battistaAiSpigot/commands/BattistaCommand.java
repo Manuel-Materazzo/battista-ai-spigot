@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
 import org.itsmanu.battistaAiSpigot.utils.ChatUtil;
 import org.itsmanu.battistaAiSpigot.utils.HttpUtil;
+import org.itsmanu.battistaAiSpigot.utils.TabUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -85,6 +86,13 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
             // Reload the plugin configuration
             plugin.reloadConfig();
             HttpUtil.initializeHttpClient();
+
+            // Refresh AI Helper tab feature
+            if (BattistaAiSpigot.getConfigs().getBoolean("tab.enabled", false)) {
+                TabUtil.enableTabFeature();
+            } else {
+                TabUtil.disableTabFeature();
+            }
 
             // Send a success message to the sender
             var message = ChatUtil.formatConfigMessage("messages.realoaded", "Reloaded successfully");

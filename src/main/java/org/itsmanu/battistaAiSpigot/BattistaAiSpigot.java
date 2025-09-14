@@ -5,6 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.itsmanu.battistaAiSpigot.commands.AskCommand;
 import org.itsmanu.battistaAiSpigot.commands.BattistaCommand;
 import org.itsmanu.battistaAiSpigot.listeners.ChatListener;
+import org.itsmanu.battistaAiSpigot.utils.TabUtil;
 
 import java.util.Objects;
 
@@ -31,6 +32,11 @@ public final class BattistaAiSpigot extends JavaPlugin {
         // Register event listeners
         registerEvents();
 
+        // Refresh AI Helper on tab
+        if (getConfig().getBoolean("tab.enabled", false)) {
+            TabUtil.enableTabFeature();
+        }
+
         getLogger().info("Battista successfully enabled!");
         getLogger().info("Configured Battista answer backend endpoint: " + getConfig().getString("endpoint.answer-url"));
         getLogger().info("Configured Battista list backend endpoint: " + getConfig().getString("endpoint.list-url"));
@@ -39,11 +45,18 @@ public final class BattistaAiSpigot extends JavaPlugin {
         if (getConfig().getBoolean("chat.auto_detect_questions.enabled", false)) {
             getLogger().info("Battista Automatic question detection: ENABLED");
         }
-        getLogger().info("Battista Active chat tag: " + getConfig().getString("chat.tag"));
+        if (getConfig().getBoolean("chat.tagging.enabled", false)) {
+            getLogger().info("Battista Tag question detection: ENABLED");
+            getLogger().info("Battista chat tag: " + getConfig().getString("chat.tag"));
+        }
+
     }
 
     @Override
     public void onDisable() {
+        if (getConfig().getBoolean("tab.enabled", false)) {
+            TabUtil.disableTabFeature();
+        }
         getLogger().info("Battista successfully disabled!");
     }
 
@@ -67,6 +80,7 @@ public final class BattistaAiSpigot extends JavaPlugin {
      */
     private void registerEvents() {
         // Register the listener for chat events
+        // NOTE: PlayerTabListener is registered in the PlayerTabListener class itself (enableTabFeature method)
         getServer().getPluginManager().registerEvents(new ChatListener(), this);
 
         getLogger().info("Battista Event listeners successfully registered!");

@@ -13,6 +13,13 @@ source-filter:
   # NOTE: on google drive, the folder is the id of the folder, not the name (eg: 1v_DPY7mkRtx-_d7DH7EB86O9R2cKfWJc)
   folder: ""
 
+# Tab settings
+# NOTE: Requires Protocolib!!!
+tab:
+  enabled: true
+  # Name of the helper displayed in the Tab
+  name: "&bBattista AI Helper"
+
 # Chat settings
 chat:
   # AI helper responds when tagged in cha
