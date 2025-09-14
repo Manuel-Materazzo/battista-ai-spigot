@@ -49,133 +49,134 @@ public class HttpUtil {
         CompletableFuture<String> future = new CompletableFuture<>();
 
         try {
-            // Prepare the JSON payload for the request
             String jsonString = prepareJsonPayload(question);
-
-            // Prepare the HTTP request
             String endpointUrl = BattistaAiSpigot.getConfigs().getString("endpoint.url", "http://localhost:8000/v2/answer");
+            Request request = buildHttpRequest(endpointUrl, jsonString);
 
-            Request request = new Request.Builder()
-                    .url(endpointUrl)
-                    .post(RequestBody.create(jsonString, JSON))
-                    .addHeader("Content-Type", "application/json")
-                    .build();
+            ChatUtil.sendDebug("Sending Battista HTTP request to: " + endpointUrl);
+            ChatUtil.sendDebug("Battista Payload: " + jsonString);
 
-            // Log the request if debug mode is enabled
-            if (BattistaAiSpigot.getConfigs().getBoolean("debug", false)) {
-                HttpUtil.logger.info("Sending Battista HTTP request to: " + endpointUrl);
-                HttpUtil.logger.info("Battista Payload: " + jsonString);
-            }
-
-            // Execute the request asynchronously
-            httpClient.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                    HttpUtil.logger.log(Level.WARNING,
-                            "Battista HTTP request failed: " + e.getMessage(), e);
-                    var message = BattistaAiSpigot.getConfigs().getString("messages.cant_process", "Can't process request");
-                    future.complete(message);
-                }
-
-                @Override
-                public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
-                    try (response) {
-                        // on rest errors
-                        if (!response.isSuccessful() || response.body() == null) {
-                            HttpUtil.logger.warning(
-                                    "Invalid Battista HTTP response. Status code: " + response.code());
-                            String message = BattistaAiSpigot.getConfigs().getString("messages.cant_process", "Service unavailable, Error: ");
-                            message += response.code();
-                            future.complete(message);
-                            return;
-                        }
-
-                        String responseBody = response.body().string();
-
-                        // Log the response if debug mode is enabled
-                        if (BattistaAiSpigot.getConfigs().getBoolean("debug", false)) {
-                            HttpUtil.logger.info("Battista HTTP response received: " + responseBody);
-                        }
-
-                        // Attempt to parse the response as JSON
-                        try {
-                            JsonObject responseJson = gson.fromJson(responseBody, JsonObject.class);
-
-                            String aiResponse;
-                            if (responseJson.has("response")) {
-                                aiResponse = responseJson.get("response").getAsString();
-                            } else {
-                                // If no specific fields are found, use the raw response
-                                aiResponse = responseBody;
-                            }
-
-                            future.complete(aiResponse);
-
-                        } catch (Exception e) {
-                            // If JSON parsing fails, use the raw response
-                            future.complete(responseBody);
-                        }
-                    }
-                }
-            });
-
+            executeHttpRequest(request, future);
         } catch (Exception e) {
-            HttpUtil.logger.log(Level.SEVERE,
-                    "Error preparing the Battista HTTP request", e);
-            var message = BattistaAiSpigot.getConfigs().getString("messages.internal_error", "Internal Error");
-            future.complete(message);
+            handleRequestPreparationError(e, future);
         }
 
         return future;
     }
 
     /**
-     * Sends a question to the AI and responds to the player.
-     * This method automatically handles thread switching to avoid issues with the Bukkit API.
+     * Builds an HTTP request with the specified URL and JSON payload.
      *
-     * @param player    The player who asked the question.
-     * @param question  The question to send.
-     * @param isPrivate Whether the response should be private (only to the player) or public (in chat).
+     * @param url         The endpoint URL to send the request to.
+     * @param jsonPayload The JSON payload to include in the request body.
+     * @return A configured Request object ready to be executed.
      */
-    public static void askAIAndRespond(Player player, String question, boolean isPrivate) {
-        // Display a processing message
-        var processingMessage = ChatUtil.formatConfigMessage("messages.processing", "Processing question...");
+    private static Request buildHttpRequest(String url, String jsonPayload) {
+        return new Request.Builder()
+                .url(url)
+                .post(RequestBody.create(jsonPayload, JSON))
+                .addHeader("Content-Type", "application/json")
+                .build();
+    }
 
-        if (isPrivate) {
-            player.sendMessage(processingMessage);
-        } else {
-            Bukkit.broadcast(processingMessage);
-        }
+    /**
+     * Executes an HTTP request asynchronously and handles the response or failure.
+     *
+     * @param request The HTTP request to execute.
+     * @param future  The CompletableFuture to complete with the response or error message.
+     */
+    private static void executeHttpRequest(Request request, CompletableFuture<String> future) {
+        httpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                handleHttpRequestFailure(e, future);
+            }
 
-        // Execute the request asynchronously
-        askAI(question).thenAccept(response -> {
-            // Switch back to the main thread to send the message
-            Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
-                var formattedResponse = ChatUtil.formatMessage(response);
-
-                if (isPrivate) {
-                    player.sendMessage(formattedResponse);
-                } else {
-                    Bukkit.broadcast(formattedResponse);
-                }
-            });
-        }).exceptionally(throwable -> {
-            // Handle errors
-            Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
-                var errorMessage = ChatUtil.formatMessage("An error occurred: " + throwable.getMessage());
-
-                if (isPrivate) {
-                    player.sendMessage(errorMessage);
-                } else {
-                    Bukkit.broadcast(errorMessage);
-                }
-            });
-
-            HttpUtil.logger.log(Level.SEVERE, "Error during Battista AI request", throwable);
-            return null;
+            @Override
+            public void onResponse(@NotNull Call call, @NotNull Response response) throws IOException {
+                handleHttpResponse(response, future);
+            }
         });
     }
 
+    /**
+     * Handles HTTP request failures by logging the error and completing the future with an error message.
+     *
+     * @param e      The IOException that occurred during the HTTP request.
+     * @param future The CompletableFuture to complete with an error message.
+     */
+    private static void handleHttpRequestFailure(IOException e, CompletableFuture<String> future) {
+        logger.log(Level.WARNING, "Battista HTTP request failed: " + e.getMessage(), e);
+        String message = BattistaAiSpigot.getConfigs().getString("messages.cant_process", "Can't process request");
+        future.complete(message);
+    }
+
+    /**
+     * Handles the HTTP response by processing the response body and completing the future with the result.
+     * If the response is unsuccessful or the body is null, it delegates to handleUnsuccessfulResponse.
+     * Otherwise, it parses the response body and completes the future with the AI's response.
+     *
+     * @param response The HTTP response to handle.
+     * @param future   The CompletableFuture to complete with the response or error message.
+     * @throws IOException If an I/O error occurs while reading the response body.
+     */
+    private static void handleHttpResponse(Response response, CompletableFuture<String> future) throws IOException {
+        try (response) {
+            if (!response.isSuccessful() || response.body() == null) {
+                handleUnsuccessfulResponse(response, future);
+                return;
+            }
+
+            String responseBody = response.body().string();
+            ChatUtil.sendDebug("Battista HTTP response received: " + responseBody);
+
+            parseAndCompleteResponse(responseBody, future);
+        }
+    }
+
+    /**
+     * Handles unsuccessful HTTP responses by logging the error and completing the future with an error message.
+     * The error message includes the HTTP status code and a configurable message from the configuration.
+     *
+     * @param response The HTTP response that was unsuccessful.
+     * @param future   The CompletableFuture to complete with an error message.
+     */
+    private static void handleUnsuccessfulResponse(Response response, CompletableFuture<String> future) {
+        logger.warning("Invalid Battista HTTP response. Status code: " + response.code());
+        String message = BattistaAiSpigot.getConfigs().getString("messages.cant_process", "Service unavailable, Error: ");
+        future.complete(message + response.code());
+    }
+
+    /**
+     * Parses the JSON response body and completes the future with the AI's response.
+     * If the response contains a "response" field, it extracts that value; otherwise, it uses the raw response body.
+     * If parsing fails, it falls back to using the raw response body.
+     *
+     * @param responseBody The raw response body from the HTTP request.
+     * @param future       The CompletableFuture to complete with the parsed response or raw response body.
+     */
+    private static void parseAndCompleteResponse(String responseBody, CompletableFuture<String> future) {
+        try {
+            JsonObject responseJson = gson.fromJson(responseBody, JsonObject.class);
+            String aiResponse = responseJson.has("response") ? responseJson.get("response").getAsString() : responseBody;
+            future.complete(aiResponse);
+        } catch (Exception e) {
+            future.complete(responseBody);
+        }
+    }
+
+    /**
+     * Handles errors that occur during the preparation of the HTTP request.
+     * Logs the error and completes the future with a configurable error message.
+     *
+     * @param e      The exception that occurred during request preparation.
+     * @param future The CompletableFuture to complete with an error message.
+     */
+    private static void handleRequestPreparationError(Exception e, CompletableFuture<String> future) {
+        logger.log(Level.SEVERE, "Error preparing the Battista HTTP request", e);
+        String message = BattistaAiSpigot.getConfigs().getString("messages.internal_error", "Internal Error");
+        future.complete(message);
+    }
 
     /**
      * Prepares the JSON payload for the AI request.

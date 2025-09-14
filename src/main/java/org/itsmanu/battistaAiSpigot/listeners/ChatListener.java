@@ -72,8 +72,9 @@ public class ChatListener implements Listener {
         }
 
         // Process the request
-        // Note: HttpUtil.askAIAndRespond will automatically handle thread switching
-        HttpUtil.askAIAndRespond(player, question, false);
+        // Note: this will automatically handle thread switching
+        var request = HttpUtil.askAI(question);
+        ChatUtil.sendAiAnswer(request, logger);
     }
 
     /**
