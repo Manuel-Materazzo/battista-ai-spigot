@@ -19,6 +19,9 @@ public class HttpUtil {
 
     private static final Logger logger = BattistaAiSpigot.getInstance().getLogger();
 
+    private HttpUtil() {
+    }
+
     static {
         initializeHttpClient();
     }

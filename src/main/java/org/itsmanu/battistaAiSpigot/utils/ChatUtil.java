@@ -12,6 +12,9 @@ import java.util.logging.Logger;
 
 public class ChatUtil {
 
+    private ChatUtil() {
+    }
+
     /**
      * Retrieves a message from the configuration and formats it with the configured prefix and color codes.
      *
