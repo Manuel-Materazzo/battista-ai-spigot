@@ -50,10 +50,7 @@ public class HttpUtil {
 
         try {
             // Prepare the JSON payload for the request
-            JsonObject requestBody = new JsonObject();
-            requestBody.addProperty("prompt", question);
-
-            String jsonString = gson.toJson(requestBody);
+            String jsonString = prepareJsonPayload(question);
 
             // Prepare the HTTP request
             String endpointUrl = BattistaAiSpigot.getConfigs().getString("endpoint.url", "http://localhost:8000/v2/answer");
@@ -179,5 +176,33 @@ public class HttpUtil {
         });
     }
 
+
+    /**
+     * Prepares the JSON payload for the AI request.
+     *
+     * @param question The question to include in the payload.
+     * @return A JSON string representing the request payload.
+     */
+    private static String prepareJsonPayload(String question) {
+        // add user request
+        JsonObject requestBody = new JsonObject();
+        if (!question.isEmpty()) {
+            requestBody.addProperty("prompt", question);
+        }
+
+        String folderFilter = BattistaAiSpigot.getConfigs().getString("source-filter.folder", "");
+        // add trailing slash if missing
+        if (!folderFilter.isEmpty()) {
+            if (!folderFilter.endsWith("/")) {
+                folderFilter += "/";
+            }
+            // add folder filter
+            String filter = String.format("contains(path, `%s`)", folderFilter);
+            requestBody.addProperty("filters", filter);
+        }
+
+
+        return gson.toJson(requestBody);
+    }
 
 }

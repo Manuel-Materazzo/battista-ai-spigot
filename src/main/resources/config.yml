@@ -6,6 +6,12 @@ endpoint:
   url: "http://localhost:8000/v2/answer"
   timeout: 30
 
+# Knowledge filtering
+source-filter:
+  # Apply a filter to the knowledge source, for example a subfolder specific for this server on a network
+  # NOTE: on google drive, the folder is the id of the folder, not the name (eg: 1v_DPY7mkRtx-_d7DH7EB86O9R2cKfWJc)
+  folder: ""
+
 # Chat settings
 chat:
   # AI helper responds when tagged in cha
