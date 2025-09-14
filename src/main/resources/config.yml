@@ -3,7 +3,8 @@ debug: false
 
 # HTTP endpoint URL for the AI
 endpoint:
-  url: "http://localhost:8000/v2/answer"
+  answer-url: "http://localhost:8000/v2/answer"
+  list-url: "http://localhost:8000/v2/list_documents"
   timeout: 30
 
 # Knowledge filtering
@@ -30,6 +31,7 @@ messages:
   question_too_short: "&cYour question is too short! Please provide more details."
   question_too_long: "&cThe question is too long! Maximum 150 characters allowed."
   processing: "&eProcessing your question..."
+  requesting_documents: "&eRequesting documents..."
   cant_process: "&cSorry, I cannot process your request at the moment. Please try again later."
   service_unavailable: "&cSorry, the AI service is currently unavailable, Error: "
   internal_error: "&cAn internal error occurred. Please contact an administrator."
@@ -42,6 +44,7 @@ messages:
   help: |-
     &7Available commands:
     &b/battista reload &7- Reload the plugin configuration
+    &b/battista documents &7- Lists documents that Battista uses as knowledge sources
     &b/battista help &7- Show this help message
     &b/ask &7- Ask a question to the AI Helper
   ask_usage: |-

@@ -32,7 +32,8 @@ public final class BattistaAiSpigot extends JavaPlugin {
         registerEvents();
 
         getLogger().info("Battista successfully enabled!");
-        getLogger().info("Configured Battista backend endpoint: " + getConfig().getString("endpoint.url"));
+        getLogger().info("Configured Battista answer backend endpoint: " + getConfig().getString("endpoint.answer-url"));
+        getLogger().info("Configured Battista list backend endpoint: " + getConfig().getString("endpoint.list-url"));
 
         // Log active modes
         if (getConfig().getBoolean("chat.auto_detect_questions")) {

@@ -71,10 +71,12 @@ public class ChatListener implements Listener {
             return;
         }
 
+        var processingMessage = ChatUtil.formatConfigMessage("messages.processing", "Processing question...");
+
         // Process the request
         // Note: this will automatically handle thread switching
         var request = HttpUtil.askAI(question);
-        ChatUtil.sendAiAnswer(request, logger);
+        ChatUtil.sendAiAnswer(request, processingMessage, logger);
     }
 
     /**

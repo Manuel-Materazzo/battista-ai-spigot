@@ -1,10 +1,7 @@
 package org.itsmanu.battistaAiSpigot.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import okhttp3.*;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,14 +43,35 @@ public class HttpUtil {
      * @return A CompletableFuture containing the AI's response.
      */
     public static CompletableFuture<String> askAI(String question) {
+        String endpointUrl = BattistaAiSpigot.getConfigs().getString("endpoint.answer-url", "http://localhost:8000/v2/answer");
+        return coordinateRequest(question, endpointUrl);
+    }
+
+    /**
+     * Retrieves a list of documents from the AI endpoint asynchronously.
+     *
+     * @return A CompletableFuture containing the list of documents as a JSON string.
+     */
+    public static CompletableFuture<String> getDocuments() {
+        String endpointUrl = BattistaAiSpigot.getConfigs().getString("endpoint.list-url", "http://localhost:8000/v2/list_documents");
+        return coordinateRequest("", endpointUrl);
+    }
+
+    /**
+     * Coordinates the request to the specified URL with the given question asynchronously.
+     *
+     * @param question The question to send in the request.
+     * @param url      The endpoint URL to send the request to.
+     * @return A CompletableFuture containing the response from the server.
+     */
+    public static CompletableFuture<String> coordinateRequest(String question, String url) {
         CompletableFuture<String> future = new CompletableFuture<>();
 
         try {
             String jsonString = prepareJsonPayload(question);
-            String endpointUrl = BattistaAiSpigot.getConfigs().getString("endpoint.url", "http://localhost:8000/v2/answer");
-            Request request = buildHttpRequest(endpointUrl, jsonString);
+            Request request = buildHttpRequest(url, jsonString);
 
-            ChatUtil.sendDebug("Sending Battista HTTP request to: " + endpointUrl);
+            ChatUtil.sendDebug("Sending Battista HTTP request to: " + url);
             ChatUtil.sendDebug("Battista Payload: " + jsonString);
 
             executeHttpRequest(request, future);
@@ -147,21 +165,70 @@ public class HttpUtil {
         future.complete(message + response.code());
     }
 
+
     /**
-     * Parses the JSON response body and completes the future with the AI's response.
-     * If the response contains a "response" field, it extracts that value; otherwise, it uses the raw response body.
-     * If parsing fails, it falls back to using the raw response body.
+     * Parses the HTTP response body and completes the future with the extracted response.
+     * If the response body is null or empty, completes the future with an empty string.
+     * If JSON parsing fails, completes the future with the original response body.
+     * For any other unexpected errors, completes the future exceptionally.
      *
-     * @param responseBody The raw response body from the HTTP request.
-     * @param future       The CompletableFuture to complete with the parsed response or raw response body.
+     * @param responseBody The HTTP response body to parse.
+     * @param future       The CompletableFuture to complete with the parsed response.
      */
     private static void parseAndCompleteResponse(String responseBody, CompletableFuture<String> future) {
+        if (responseBody == null || responseBody.trim().isEmpty()) {
+            future.complete("");
+            return;
+        }
+
         try {
-            JsonObject responseJson = gson.fromJson(responseBody, JsonObject.class);
-            String aiResponse = responseJson.has("response") ? responseJson.get("response").getAsString() : responseBody;
+            JsonElement jsonElement = gson.fromJson(responseBody, JsonElement.class);
+            String aiResponse = extractResponse(jsonElement, responseBody);
             future.complete(aiResponse);
-        } catch (Exception e) {
+        } catch (JsonSyntaxException e) {
+            // If JSON parsing fails, complete with original response
             future.complete(responseBody);
+        } catch (Exception e) {
+            // For any other unexpected errors, complete exceptionally
+            future.completeExceptionally(e);
+        }
+    }
+
+    /**
+     * Extracts the AI's response from a JSON element.
+     * If the element is a JSON object, it looks for a "response" field.
+     * If the element is a JSON array, it concatenates all "path" fields from the objects in the array.
+     * If the element is neither, it returns the fallback string.
+     *
+     * @param jsonElement The JSON element to extract the response from.
+     * @param fallback    The fallback string to return if extraction fails.
+     * @return The extracted response or the fallback string.
+     */
+    private static String extractResponse(JsonElement jsonElement, String fallback) {
+        if (jsonElement == null) {
+            return fallback;
+        }
+
+        if (jsonElement.isJsonObject()) {
+            var response = jsonElement.getAsJsonObject();
+            return response.has("response") ? response.get("response").getAsString() : fallback;
+        } else if (jsonElement.isJsonArray()) {
+            var responseArray = jsonElement.getAsJsonArray();
+            StringBuilder result = new StringBuilder();
+            for (JsonElement element : responseArray) {
+                if (element.isJsonObject()) {
+                    JsonObject document = element.getAsJsonObject();
+                    if (document.has("path")) {
+                        JsonElement pathElement = document.get("path");
+                        if (!pathElement.isJsonNull()) {
+                            result.append(pathElement.getAsString()).append("\n");
+                        }
+                    }
+                }
+            }
+            return result.toString();
+        } else {
+            return fallback;
         }
     }
 
@@ -200,6 +267,7 @@ public class HttpUtil {
             // add folder filter
             String filter = String.format("contains(path, `%s`)", folderFilter);
             requestBody.addProperty("filters", filter);
+            requestBody.addProperty("metadata_filter", filter);
         }
 
 

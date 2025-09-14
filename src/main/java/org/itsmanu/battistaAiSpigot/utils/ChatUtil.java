@@ -52,10 +52,10 @@ public class ChatUtil {
      * This method automatically handles thread switching to avoid issues with the Bukkit API.
      *
      * @param aiRequest The ai request to send.
-     * @param logger   The logger to use for error reporting.
+     * @param logger    The logger to use for error reporting.
      */
-    public static void sendAiAnswer(CompletableFuture<String> aiRequest, Logger logger) {
-        sendAiAnswer(aiRequest, null, logger);
+    public static void sendAiAnswer(CompletableFuture<String> aiRequest, Component processingMessage, Logger logger) {
+        sendAiAnswer(aiRequest, null, processingMessage, logger);
     }
 
     /**
@@ -63,11 +63,9 @@ public class ChatUtil {
      * This method automatically handles thread switching to avoid issues with the Bukkit API.
      *
      * @param aiRequest The ai request to send.
-     * @param player   The player who asked the question.
+     * @param player    The player who asked the question.
      */
-    public static void sendAiAnswer(CompletableFuture<String> aiRequest, Player player, Logger logger) {
-        // Display a processing message
-        var processingMessage = ChatUtil.formatConfigMessage("messages.processing", "Processing question...");
+    public static void sendAiAnswer(CompletableFuture<String> aiRequest, Player player, Component processingMessage, Logger logger) {
 
         if (player != null) {
             player.sendMessage(processingMessage);

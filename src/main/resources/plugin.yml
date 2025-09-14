@@ -22,3 +22,6 @@ permissions:
   battista.reload:
     description: Plugin reload permission
     default: op
+  battista.documents:
+    description: Permission to list documents that Battista uses as knowledge sources
+    default: op

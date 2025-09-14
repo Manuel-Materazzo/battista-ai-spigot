@@ -4,6 +4,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
 import org.itsmanu.battistaAiSpigot.utils.ChatUtil;
 import org.itsmanu.battistaAiSpigot.utils.HttpUtil;
@@ -54,6 +55,10 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
                 sendHelp(sender);
                 break;
 
+            case "documents":
+                sendDocumentList(sender);
+                break;
+
             default:
                 var message = ChatUtil.formatConfigMessage("messages.unknown_command", "Unknown subcommand.");
                 sender.sendMessage(message);
@@ -102,7 +107,7 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
      * @param sender The sender who executed the command.
      */
     private void sendHelp(CommandSender sender) {
-        String commands = "Battista commands:\n /battista reload\n/battista help";
+        String commands = "Battista commands:\n /battista reload\n/battista help\n/battista documents";
         var message = BattistaAiSpigot.getConfigs().getString("messages.help", commands);
 
         String[] lines = message.split("\n");
@@ -112,6 +117,29 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
             var formattedLine = ChatUtil.formatMessage(line);
             sender.sendMessage(formattedLine);
         }
+    }
+
+    private void sendDocumentList(CommandSender sender) {
+        // Check if the sender has the required permission
+        if (!sender.hasPermission("battista.documents")) {
+            var message = ChatUtil.formatConfigMessage("messages.no_permission", "You need battista.documents permission");
+            sender.sendMessage(message);
+            return;
+        }
+
+        // Ensure the sender is a player
+        if (!(sender instanceof Player player)) {
+            var message = ChatUtil.formatConfigMessage("messages.only_players", "You're not a player!");
+            sender.sendMessage(message);
+            return;
+        }
+        var processingMessage = ChatUtil.formatConfigMessage("messages.requesting_documents", "Requesting documents...");
+
+        // Request the list of documents to the remote backend
+        // Note: this will automatically handle thread switching
+        var request = HttpUtil.getDocuments();
+        ChatUtil.sendAiAnswer(request, player, processingMessage, logger);
+
     }
 
     /**
@@ -129,12 +157,15 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             // Suggestions for the first argument
-            List<String> subcommands = Arrays.asList("reload", "help");
+            List<String> subcommands = Arrays.asList("reload", "help", "documents");
 
             for (String subcommand : subcommands) {
                 if (subcommand.toLowerCase().startsWith(args[0].toLowerCase())) {
                     // Check permissions for tab completion
                     if (subcommand.equals("reload") && !sender.hasPermission("battista.reload")) {
+                        continue;
+                    }
+                    if (subcommand.equals("documents") && !sender.hasPermission("battista.documents")) {
                         continue;
                     }
                     completions.add(subcommand);
