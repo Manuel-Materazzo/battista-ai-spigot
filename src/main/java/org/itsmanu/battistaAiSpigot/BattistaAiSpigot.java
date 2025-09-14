@@ -36,7 +36,7 @@ public final class BattistaAiSpigot extends JavaPlugin {
         getLogger().info("Configured Battista list backend endpoint: " + getConfig().getString("endpoint.list-url"));
 
         // Log active modes
-        if (getConfig().getBoolean("chat.auto_detect_questions")) {
+        if (getConfig().getBoolean("chat.auto_detect_questions.enabled", false)) {
             getLogger().info("Battista Automatic question detection: ENABLED");
         }
         getLogger().info("Battista Active chat tag: " + getConfig().getString("chat.tag"));

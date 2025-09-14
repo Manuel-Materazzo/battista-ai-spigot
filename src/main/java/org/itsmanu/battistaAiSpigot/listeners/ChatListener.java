@@ -45,7 +45,7 @@ public class ChatListener implements Listener {
 
         // get configs
         FileConfiguration config = BattistaAiSpigot.getConfigs();
-        boolean autoDetectQuestions = config.getBoolean("chat.auto_detect_questions", true);
+        boolean autoDetectQuestions = config.getBoolean("chat.auto_detect_questions.enabled", false);
         String tag = config.getString("chat.tag", "@Helper");
 
         String question = null;
@@ -110,7 +110,10 @@ public class ChatListener implements Listener {
             return false;
         }
 
-        if (question.length() < 3) {
+        var min_length = BattistaAiSpigot.getConfigs().getInt("chat.auto_detect_questions.min_length", 5);
+        var max_length = BattistaAiSpigot.getConfigs().getInt("chat.auto_detect_questions.max_length", 150);
+
+        if (question.length() < min_length) {
             // Question is too short, ignore it
             if (config.getBoolean("debug", false)) {
                 var message = ChatUtil.formatConfigMessage("messages.question_too_short", "Question too short.");
@@ -119,10 +122,10 @@ public class ChatListener implements Listener {
             return false;
         }
 
-        if (question.length() > 150) {
+        if (question.length() > max_length) {
             // Question is too long, send an error message
             Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
-                var message = ChatUtil.formatConfigMessage("messages.question_too_long", "Max 150 characters.");
+                var message = ChatUtil.formatConfigMessage("messages.question_too_long", "Question too long.");
                 player.sendMessage(message);
             });
             return false;

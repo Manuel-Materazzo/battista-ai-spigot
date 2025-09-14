@@ -81,13 +81,16 @@ public class AskCommand implements CommandExecutor {
             return true;
         }
 
-        if (question.length() < 3) {
+        var min_length = BattistaAiSpigot.getConfigs().getInt("chat.auto_detect_questions.min_length", 5);
+        var max_length = BattistaAiSpigot.getConfigs().getInt("chat.auto_detect_questions.max_length", 150);
+
+        if (question.length() < min_length) {
             var message = ChatUtil.formatConfigMessage("messages.question_too_short", "Question too short");
             player.sendMessage(message);
             return true;
         }
 
-        if (question.length() > 150) {
+        if (question.length() > max_length) {
             var message = ChatUtil.formatConfigMessage("messages.question_too_long", "Question too long");
             player.sendMessage(message);
             return true;

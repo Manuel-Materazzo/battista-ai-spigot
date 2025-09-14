@@ -22,7 +22,10 @@ chat:
     tag: "@Helper"
 
   # Automatic question detection (looks for ? at the end of the message)
-  auto_detect_questions: true
+  auto_detect_questions:
+    enabled: true
+    min_length: 5
+    max_length: 150
 
   # Prefix for AI responses
   response_prefix: "&7[&bAI Helper&7]&f "
