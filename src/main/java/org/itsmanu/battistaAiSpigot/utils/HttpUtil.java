@@ -217,7 +217,7 @@ public class HttpUtil {
             return response.has("response") ? response.get("response").getAsString() : fallback;
         } else if (jsonElement.isJsonArray()) {
             var responseArray = jsonElement.getAsJsonArray();
-            StringBuilder result = new StringBuilder();
+            StringBuilder result = new StringBuilder("Idexed documents:\n");
             for (JsonElement element : responseArray) {
                 if (element.isJsonObject()) {
                     JsonObject document = element.getAsJsonObject();
