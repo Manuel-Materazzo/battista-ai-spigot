@@ -105,4 +105,47 @@ public class ChatUtil {
         });
     }
 
+    /**
+     * Validates a question based on length requirements.
+     *
+     * @param question The question to validate.
+     * @param player   The player who asked the question.
+     * @return true if the question is valid, false otherwise.
+     */
+    public static boolean is_question_valid(String question, Player player, boolean warnPlayer) {
+
+        if (question == null || question.isEmpty()) {
+            var message = ChatUtil.formatConfigMessage("messages.empty_question", "Empty question");
+            if (warnPlayer) {
+                player.sendMessage(message);
+            }
+            sendDebug(message.toString());
+            return false;
+        }
+
+        var min_length = BattistaAiSpigot.getConfigs().getInt("chat.auto_detect_questions.min_length", 5);
+        var max_length = BattistaAiSpigot.getConfigs().getInt("chat.auto_detect_questions.max_length", 150);
+
+        if (question.length() < min_length) {
+            // Question is too short, ignore it
+            var message = ChatUtil.formatConfigMessage("messages.question_too_short", "Question too short.");
+            if (warnPlayer) {
+                player.sendMessage(message);
+            }
+            sendDebug(message.toString());
+            return false;
+        }
+
+        if (question.length() > max_length) {
+            // Question is too long, send an error message
+            var message = ChatUtil.formatConfigMessage("messages.question_too_long", "Question too long.");
+            if (warnPlayer) {
+                player.sendMessage(message);
+            }
+            sendDebug(message.toString());
+            return false;
+        }
+        return true;
+    }
+
 }

@@ -67,7 +67,7 @@ public class HttpUtil {
      * @param url      The endpoint URL to send the request to.
      * @return A CompletableFuture containing the response from the server.
      */
-    public static CompletableFuture<String> coordinateRequest(String question, String url) {
+    private static CompletableFuture<String> coordinateRequest(String question, String url) {
         CompletableFuture<String> future = new CompletableFuture<>();
 
         try {

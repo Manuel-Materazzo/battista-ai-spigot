@@ -50,16 +50,7 @@ public class AskCommand implements CommandExecutor {
         }
 
         // Ensure the sender is a player
-        if (!(sender instanceof Player player)) {
-            var message = ChatUtil.formatConfigMessage("messages.only_players", "You're not a player!");
-            sender.sendMessage(message);
-            return true;
-        }
-
-        // Check if the player has the required permission
-        if (!player.hasPermission("battista.use")) {
-            var message = ChatUtil.formatConfigMessage("messages.no_permission", "You need battista.use permission");
-            player.sendMessage(message);
+        if (!has_permissions(sender)) {
             return true;
         }
 
@@ -72,35 +63,16 @@ public class AskCommand implements CommandExecutor {
             }
         }
 
+        Player player = (Player) sender;
         String question = questionBuilder.toString().trim();
 
-        // Validate the question
-        if (question.isEmpty()) {
-            var message = ChatUtil.formatConfigMessage("messages.empty_question", "Empty question");
-            player.sendMessage(message);
-            return true;
-        }
-
-        var min_length = BattistaAiSpigot.getConfigs().getInt("chat.auto_detect_questions.min_length", 5);
-        var max_length = BattistaAiSpigot.getConfigs().getInt("chat.auto_detect_questions.max_length", 150);
-
-        if (question.length() < min_length) {
-            var message = ChatUtil.formatConfigMessage("messages.question_too_short", "Question too short");
-            player.sendMessage(message);
-            return true;
-        }
-
-        if (question.length() > max_length) {
-            var message = ChatUtil.formatConfigMessage("messages.question_too_long", "Question too long");
-            player.sendMessage(message);
+        // check if the question is valid
+        if (!ChatUtil.is_question_valid(question, player, true)) {
             return true;
         }
 
         // Log the question if debug mode is enabled
-        FileConfiguration config = BattistaAiSpigot.getConfigs();
-        if (config.getBoolean("debug", false)) {
-            logger.info("Command /ask executed by " + player.getName() + ": " + question);
-        }
+        ChatUtil.sendDebug("Command /ask executed by " + player.getName() + ": " + question);
 
         var processingMessage = ChatUtil.formatConfigMessage("messages.processing", "Processing question...");
 
@@ -108,6 +80,29 @@ public class AskCommand implements CommandExecutor {
         // Note: this will automatically handle thread switching
         var request = HttpUtil.askAI(question);
         ChatUtil.sendAiAnswer(request, player, processingMessage, logger);
+        return true;
+    }
+
+    /**
+     * Checks if the command sender has the required permissions to execute the command.
+     *
+     * @param sender The entity that executed the command.
+     * @return true if the sender has the required permissions, false otherwise.
+     */
+    private boolean has_permissions(CommandSender sender) {
+        // Ensure the sender is a player
+        if (!(sender instanceof Player player)) {
+            var message = ChatUtil.formatConfigMessage("messages.only_players", "You're not a player!");
+            sender.sendMessage(message);
+            return false;
+        }
+
+        // Check if the player has the required permission
+        if (!player.hasPermission("battista.use")) {
+            var message = ChatUtil.formatConfigMessage("messages.no_permission", "You need battista.use permission");
+            player.sendMessage(message);
+            return false;
+        }
         return true;
     }
 }

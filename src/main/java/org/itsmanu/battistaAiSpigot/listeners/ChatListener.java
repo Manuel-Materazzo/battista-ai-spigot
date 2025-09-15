@@ -61,7 +61,7 @@ public class ChatListener implements Listener {
         }
 
         // check if the question is valid
-        if (!is_question_valid(config, question, player)) {
+        if (!ChatUtil.is_question_valid(question, player, false)) {
             return;
         }
 
@@ -95,42 +95,6 @@ public class ChatListener implements Listener {
             return true;
         }
         return false;
-    }
-
-    /**
-     * Validates a question based on length requirements.
-     *
-     * @param question The question to validate.
-     * @param player   The player who asked the question.
-     * @return true if the question is valid, false otherwise.
-     */
-    private boolean is_question_valid(FileConfiguration config, String question, Player player) {
-
-        if (question == null || question.isEmpty()) {
-            return false;
-        }
-
-        var min_length = BattistaAiSpigot.getConfigs().getInt("chat.auto_detect_questions.min_length", 5);
-        var max_length = BattistaAiSpigot.getConfigs().getInt("chat.auto_detect_questions.max_length", 150);
-
-        if (question.length() < min_length) {
-            // Question is too short, ignore it
-            if (config.getBoolean("debug", false)) {
-                var message = ChatUtil.formatConfigMessage("messages.question_too_short", "Question too short.");
-                logger.info(message.toString());
-            }
-            return false;
-        }
-
-        if (question.length() > max_length) {
-            // Question is too long, send an error message
-            Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
-                var message = ChatUtil.formatConfigMessage("messages.question_too_long", "Question too long.");
-                player.sendMessage(message);
-            });
-            return false;
-        }
-        return true;
     }
 
     /**
