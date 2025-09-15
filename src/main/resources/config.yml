@@ -47,7 +47,7 @@ messages:
   internal_error: "&cAn internal error occurred. Please contact an administrator."
   unknown_command: "&cUnknown subcommand. Use '/battista help' to see available commands."
   no_permission: "&cYou do not have permission to use this command!"
-  empty_question: "&cYou do not have permission to use this command!"
+  empty_question: "&cYou have to ask something!"
   only_players: "&cOnly players can use this command!"
   realoaded: "&aBattista plugin configuration successfully reloaded!"
   not_realoaded: "&cAn error occurred while reloading the configuration!"
