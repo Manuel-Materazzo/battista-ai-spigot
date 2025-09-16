@@ -3,11 +3,13 @@ package org.itsmanu.battistaAiSpigot.commands;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
 import org.itsmanu.battistaAiSpigot.utils.ChatUtil;
 import org.itsmanu.battistaAiSpigot.utils.HttpUtil;
+import org.itsmanu.battistaAiSpigot.utils.LimitsUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Logger;
@@ -34,37 +36,20 @@ public class AskCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
 
-        // Check if arguments are provided
-        if (args.length == 0) {
-            String commands = "Usage: /ask <question>\nExample: /ask How do I craft a diamond sword?";
-            var message = BattistaAiSpigot.getConfigs().getString("messages.ask_usage", commands);
-
-            String[] lines = message.split("\n");
-
-            // Send each line with color codes translated
-            for (String line : lines) {
-                var formattedLine = ChatUtil.formatMessage(line);
-                sender.sendMessage(formattedLine);
-            }
+        // Ensure the sender is a player and has permissions
+        if (!has_permissions(sender)) {
             return true;
         }
+        Player player = (Player) sender;
 
-        // Ensure the sender is a player
-        if (!has_permissions(sender)) {
+        // If no arguments provided, enter interactive mode
+        if (args.length == 0) {
+            handleInteractiveAsk(player);
             return true;
         }
 
         // Combine all arguments into a single question
-        StringBuilder questionBuilder = new StringBuilder();
-        for (int i = 0; i < args.length; i++) {
-            questionBuilder.append(args[i]);
-            if (i < args.length - 1) {
-                questionBuilder.append(" ");
-            }
-        }
-
-        Player player = (Player) sender;
-        String question = questionBuilder.toString().trim();
+        String question = buildQuestion(args);
 
         // check if the question is valid
         if (!ChatUtil.is_question_valid(question, player, true)) {
@@ -104,5 +89,58 @@ public class AskCommand implements CommandExecutor {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Combines the command arguments into a single question string.
+     *
+     * @param args The arguments provided with the command.
+     * @return The combined question string with proper spacing.
+     */
+    private String buildQuestion(String[] args) {
+        StringBuilder questionBuilder = new StringBuilder();
+        for (int i = 0; i < args.length; i++) {
+            questionBuilder.append(args[i]);
+            if (i < args.length - 1) {
+                questionBuilder.append(" ");
+            }
+        }
+        return questionBuilder.toString().trim();
+    }
+
+    private void handleInteractiveAsk(Player player) {
+        // Check if player already has a pending question
+        if (LimitsUtil.hasPendingQuestions(player)) {
+            var alt_message = "You are in interactive mode, just ask without commands!";
+            var message = ChatUtil.formatConfigMessage("messages.ask_interactive_pending", alt_message);
+            player.sendMessage(message);
+            return;
+        }
+
+        // Send initial message
+        var initialMessage = ChatUtil.formatConfigMessage("messages.ask_interactive", "I'm here for you, ask away!");
+        player.sendMessage(initialMessage);
+
+        // get timeout from config
+        long timeout = BattistaAiSpigot.getConfigs().getInt("limits.inteactive_timeout", 60) * 20L;
+
+        // Create timeout task
+        BukkitTask timeoutTask = new BukkitRunnable() {
+            @Override
+            public void run() {
+                // Send timeout message
+                if (player.isOnline()) {
+                    var alt_message = "Question timeout! use **/ask** if you need me again.";
+                    var message = ChatUtil.formatConfigMessage("messages.ask_inteactive_timeout", alt_message);
+                    player.sendMessage(message);
+                }
+
+                // Remove from pending questions
+                LimitsUtil.removePendingQuestions(player);
+            }
+        }.runTaskLater(BattistaAiSpigot.getInstance(), timeout);
+
+        // Store the task so we can cancel it if needed
+        LimitsUtil.addPendingQuestions(player, timeoutTask);
     }
 }
