@@ -1,7 +1,9 @@
 # Debug settings
 debug: false
 
-# HTTP endpoint URL for the AI
+# HTTP endpoint URL for the AI backend
+# To archive optimal results, you should use Battista AI Backend, which MUST be installed separately from minecraft.
+# It's a whole different application, more infos here: https://github.com/Manuel-Materazzo/battista-ai-backend
 endpoint:
   answer-url: "http://localhost:8000/v2/answer"
   list-url: "http://localhost:8000/v2/list_documents"
@@ -16,25 +18,27 @@ source-filter:
 # Tab settings
 # NOTE: Requires Protocolib!!!
 tab:
+  # When enabled, shows Battista AI Helper as a player in the Tab
   enabled: true
   # Name of the helper displayed in the Tab
   name: "&bBattista AI Helper"
 
 # Chat settings
 chat:
-  # AI helper responds when tagged in cha
+  # AI helper responds when someone tags it in chat
   tagging:
     enabled: true
-    # Tag for activation in chat (e.g., @Helper)
+    # Tag for battista question detection in chat
+    # An example of a message detected with the default tag would be: "@Helper what i have to do"
     tag: "@Helper"
 
-  # Automatic question detection (looks for ? at the end of the message)
+  # Automatic question detection in chat (looks for ? at the end of the message)
   auto_detect_questions:
     enabled: true
     min_length: 5
     max_length: 150
 
-  # Prefix for AI responses
+  # Prefix for AI responses in chat
   response_prefix: "&7[&bAI Helper&7]&f "
 
 messages:
@@ -57,6 +61,3 @@ messages:
     &b/battista documents &7- Lists documents that Battista uses as knowledge sources
     &b/battista help &7- Show this help message
     &b/ask &7- Ask a question to the AI Helper
-  ask_usage: |-
-    &cUsage: /ask <question>
-    &bExample: /ask How do I craft a diamond sword?
