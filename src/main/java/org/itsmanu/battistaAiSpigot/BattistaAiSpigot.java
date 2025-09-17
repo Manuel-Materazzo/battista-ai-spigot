@@ -5,6 +5,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.itsmanu.battistaAiSpigot.commands.AskCommand;
 import org.itsmanu.battistaAiSpigot.commands.BattistaCommand;
 import org.itsmanu.battistaAiSpigot.listeners.ChatListener;
+import org.itsmanu.battistaAiSpigot.listeners.PlayerInteractiveAskListener;
 import org.itsmanu.battistaAiSpigot.utils.TabUtil;
 
 import java.util.Objects;
@@ -82,6 +83,7 @@ public final class BattistaAiSpigot extends JavaPlugin {
         // Register the listener for chat events
         // NOTE: PlayerTabListener is registered in the PlayerTabListener class itself (enableTabFeature method)
         getServer().getPluginManager().registerEvents(new ChatListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerInteractiveAskListener(), this);
 
         getLogger().info("Battista Event listeners successfully registered!");
     }
