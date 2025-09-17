@@ -6,21 +6,38 @@
 
 ## ✨ Overview
 
-Battista Ai Helper is a plugin for Minecraft Paper/Spigot servers that lets players ask questions and receive instant AI-powered answers directly in-game. Players can ask privately with a command, publicly in chat using a tag (like `@Helper`), or just by typing a question ending in a `?` – the plugin handles it all!
+Battista Ai Helper is a plugin for Minecraft Paper/Spigot servers that lets players ask questions and receive instant
+AI-powered answers directly in-game. Players can ask privately with a command, publicly in chat using a tag (
+like `@Helper`), or just by typing a question ending in a `?` – the plugin handles it all!
 
-- **Fast**: Asynchronous HTTP calls, no server lag
-- **Flexible**: Three activation modes (command, tag, auto-detect)
-- **Safe**: Permissions, validation, error handling
-- **Easy to use**: Low mantainance and configuration
-- **Fully configurable**: All messages, endpoint, and behaviors are configurable
+
+
+- **Fast**: Asynchronous HTTP calls for zero server lag
+- **Flexible**: Multiple activation modes (command, tag, auto-detect)
+- **Integrated**: AI helper appears in TAB and answers interactively
+- **Document-Aware**: Knowledge filtering system, with built-in document management and commands to view active knowledge sources
+- **Fully Configurable**: Customizable message lengths, endpoints, behaviors, and all user-facing text
+- **Safe \& Reliable**: Comprehensive permissions system, input validation, and robust error handling
 
 ---
 
 ## 🎮 Usage
 
-- **Ask privately:**
+- **Ask with a command:**
   ```
   /ask What should i do in this server?
+  ```
+  *(Private reply only to you)*
+
+
+- **Ask interactively:**
+  ```
+  /ask
+  ```
+  *[AI Helper] Hey, i'm Battista, the AI Helper! feel free to ask me anything! Just send a chat message and i'll respond
+  to you!*
+  ```
+  What should i do in this server?
   ```
   *(Private reply only to you)*
 
@@ -32,7 +49,7 @@ Battista Ai Helper is a plugin for Minecraft Paper/Spigot servers that lets play
   *(Public reply visible to everyone)*
 
 
-- **Auto-detect (ends with ?):**
+- **Auto-detect questions (ends with ?):**
   ```
   How do i get back to spawn?
   ````
@@ -42,49 +59,50 @@ Battista Ai Helper is a plugin for Minecraft Paper/Spigot servers that lets play
 
 ## 🔒 Permissions
 
-| Permission         | Description                          | Default |
-|--------------------|--------------------------------------|---------|
-| `battista.use`     | Use /ask and chat AI features        | true    |
-| `battista.reload`  | Reload plugin via `/battista reload` | op      |
+| Permission        | Description                          | Default |
+|-------------------|--------------------------------------|---------|
+| `battista.use`    | Use /ask and chat AI features        | true    |
+| `battista.reload` | Reload plugin via `/battista reload` | op      |
 
 ---
 
 ## 🛠️ Commands
 
-| Command                | Description                       |
-|------------------------|-----------------------------------|
-| `/ask <question>`      | Ask AI privately                  |
-| `/battista reload`     | Reload plugin configuration       |
-| `/battista help`       | Show help message                 |
+| Command            | Description                  |
+|--------------------|------------------------------|
+| `/ask`             | Ask AI with interactive mode |
+| `/ask <question>`  | Ask AI privately             |
+| `/battista reload` | Reload plugin configuration  |
+| `/battista help`   | Show help message            |
 
 ---
 
 ## ⚙️ Configuration
 
-Edit everything in `config.yml`.
+The plugin is highly configurable through `config.yml`, allowing you to customize every aspect of the AI helper's behavior and appearance.
 
-- **Endpoint settings:**  
-  ```yaml
-  endpoint:
-    url: "http://localhost:8000/v2/answer"
-    timeout: 30
-  ```
+### Key Configuration Areas
 
-- **Chat options:**
-  ```yaml
-  chat:
-    tagging:
-      enabled: true
-      tag: "@Helper"
-    auto_detect_questions: true
-    response_prefix: "&7[&bAI Helper&7]&f "
-  ```
+**Backend Integration**: Configure your AI backend endpoint URL and connection settings. The plugin is designed to work optimally with the separate [Battista AI Backend application](https://github.com/Manuel-Materazzo/battista-ai-backend).
 
-- **Messages:**  
-  All plugin responses are customizable. They also support [pseudo-mardown](https://github.com/Manuel-Materazzo/battista-ai-spigot/blob/master/SYNTAX_HELP.md)!
+**Knowledge Filtering**: Set up source filters to target specific knowledge subsets, such as server-specific folders in your document repository. This enables contextual responses tailored to your server's needs.
+
+**Tab Menu Integration**: Control whether the AI helper appears in the player TAB menu (requires ProtocolLib) and customize its display name with color codes.
+
+**Chat Activation Methods**: Fine-tune how players can interact with the AI:
+
+- **Tagging**: Enable/disable chat tag detection (default: `@Helper`)
+- **Auto-detection**: Configure automatic question recognition for messages ending with `?`
+- **Response formatting**: Customize the chat prefix for AI responses
+
+**Rate Limiting**: Configure character limits and timeouts to prevent abuse while maintaining responsive gameplay.
+
+**Messages**: All player-facing text is fully customizable, including error messages, prompts, and system notifications.
+They also support [pseudo-mardown](https://github.com/Manuel-Materazzo/battista-ai-spigot/blob/master/SYNTAX_HELP.md)!
+
+The configuration file includes detailed comments explaining each setting and providing examples for optimal setup.
 
 ---
-
 
 ## 📦 Installation
 
@@ -110,9 +128,10 @@ Edit everything in `config.yml`.
     - Set your AI endpoint:
       ```yaml
       endpoint:
-        url: "http://your-ai-server.com/v2/answer"
+        answer-url: "http://your-ai-server.com/v2/answer"
       ```
     - Adjust any other settings/messages as needed.
+
 ---
 
 ## 🏆 Status
@@ -126,6 +145,6 @@ Bug reports and improvements welcome!
 
 ## 📄 License
 
-MIT 
+MIT
 
 ---
