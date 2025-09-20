@@ -108,6 +108,8 @@ public class ChatListener implements Listener {
             event.setCancelled(true);
             // Cancel the interactive timeout task
             LimitsUtil.removePendingQuestions(player);
+            // start a validity check and warn the player
+            ChatUtil.is_question_valid(message, player, true);
             return message;
         }
         // Check if the message contains the tag (e.g., @Helper)
