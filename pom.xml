@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.itsmanu</groupId>
-    <artifactId>battista-ai-spigot</artifactId>
-    <version>1.0</version>
+    <artifactId>battista-ai-helper</artifactId>
+    <version>1.1</version>
     <packaging>jar</packaging>
 
     <name>battista-ai-spigot</name>
