@@ -87,7 +87,7 @@ The plugin is highly configurable through `config.yml`, allowing you to customiz
 
 **Knowledge Filtering**: Set up source filters to target specific knowledge subsets, such as server-specific folders in your document repository. This enables contextual responses tailored to your server's needs.
 
-**Tab Menu Integration**: Control whether the AI helper appears in the player TAB menu (requires ProtocolLib) and customize its display name with color codes.
+**Tab Menu Integration**: Control whether the AI helper appears in the player TAB menu (requires ProtocolLib) and customize its skin and display name.
 
 **Chat Activation Methods**: Fine-tune how players can interact with the AI:
 
