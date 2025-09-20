@@ -43,16 +43,16 @@ public class AskCommand implements CommandExecutor {
         }
         Player player = (Player) sender;
 
-        // Check global rate limits
-        if(LimitsUtil.isGlobalRateLimitExceeded()){
-            var rateLimitMessage = ChatUtil.formatConfigMessage("messages.global_ratelimit_exceded", "Global Ratelimit Exceeded");
+        // Check player rate limits
+        if(LimitsUtil.isPlayerRateLimitExceeded(player.getUniqueId())){
+            var rateLimitMessage = ChatUtil.formatConfigMessage("messages.player_ratelimit_exceded", "Player Ratelimit Exceeded");
             Bukkit.broadcast(rateLimitMessage);
             return true;
         }
 
-        // Check player rate limits
-        if(LimitsUtil.isPlayerRateLimitExceeded(player.getUniqueId())){
-            var rateLimitMessage = ChatUtil.formatConfigMessage("messages.player_ratelimit_exceded", "Player Ratelimit Exceeded");
+        // Check global rate limits
+        if(LimitsUtil.isGlobalRateLimitExceeded()){
+            var rateLimitMessage = ChatUtil.formatConfigMessage("messages.global_ratelimit_exceded", "Global Ratelimit Exceeded");
             Bukkit.broadcast(rateLimitMessage);
             return true;
         }
