@@ -39,13 +39,6 @@ public class TabUtil {
      * for all online players. This method checks if ProtocolLib is available before proceeding.
      */
     public static void enableTabFeature() {
-        // Check if ProtocolLib is available
-        boolean protocolibAvailable = DependencyUtil.checkProtocolLib();
-
-        if (!protocolibAvailable) {
-            logger.warning("ProtocolLib is not available. Battista AI Tab feature will not be enabled.");
-            return;
-        }
 
         if (tabListener == null) {
             tabListener = new PlayerTabListener();
@@ -55,7 +48,7 @@ public class TabUtil {
             plugin.getServer().getPluginManager().registerEvents(tabListener, plugin);
 
             // Check if the new PLAYER_INFO_REMOVE packet type exists (1.19.4+)
-            useNewRemovePacket = DependencyUtil.isPacketTypeAvailable(PacketType.Play.Server.PLAYER_INFO_REMOVE);
+            useNewRemovePacket = isPacketTypeAvailable(PacketType.Play.Server.PLAYER_INFO_REMOVE);
         }
 
         // Refresh tablist for existing players
@@ -227,6 +220,22 @@ public class TabUtil {
         });
 
         return future;
+    }
+
+    /**
+     * Checks if a specific packet type is available in the ProtocolLib library.
+     * This method attempts to create a packet of the given type to determine availability.
+     *
+     * @param packetType The PacketType to check for availability
+     * @return true if the packet type is available and can be created, false otherwise
+     */
+    private static boolean isPacketTypeAvailable(PacketType packetType) {
+        try {
+            protocolManager.createPacket(packetType);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
 }

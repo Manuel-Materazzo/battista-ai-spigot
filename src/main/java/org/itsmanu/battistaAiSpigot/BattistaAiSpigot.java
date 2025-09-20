@@ -6,6 +6,7 @@ import org.itsmanu.battistaAiSpigot.commands.AskCommand;
 import org.itsmanu.battistaAiSpigot.commands.BattistaCommand;
 import org.itsmanu.battistaAiSpigot.listeners.ChatListener;
 import org.itsmanu.battistaAiSpigot.listeners.PlayerInteractiveAskListener;
+import org.itsmanu.battistaAiSpigot.utils.DependencyUtil;
 import org.itsmanu.battistaAiSpigot.utils.LimitsUtil;
 import org.itsmanu.battistaAiSpigot.utils.TabUtil;
 
@@ -36,7 +37,11 @@ public final class BattistaAiSpigot extends JavaPlugin {
 
         // Refresh AI Helper on tab
         if (getConfig().getBoolean("tab.enabled", false)) {
-            TabUtil.enableTabFeature();
+            if(DependencyUtil.checkProtocolLib()){
+                TabUtil.enableTabFeature();
+            } else {
+                getLogger().warning("ProtocolLib is not available. Battista AI Tab feature will not be enabled.");
+            }
         }
 
         // start cleanup task on rate limits
@@ -59,7 +64,7 @@ public final class BattistaAiSpigot extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (getConfig().getBoolean("tab.enabled", false)) {
+        if (DependencyUtil.checkProtocolLib() && getConfig().getBoolean("tab.enabled", false)) {
             TabUtil.disableTabFeature();
         }
 
