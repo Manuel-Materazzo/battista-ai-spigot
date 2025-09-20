@@ -42,7 +42,12 @@ public class TabUtil {
         // Check if ProtocolLib is available
         boolean protocolibAvailable = DependencyUtil.checkProtocolLib();
 
-        if (protocolibAvailable && tabListener == null) {
+        if (!protocolibAvailable) {
+            logger.warning("ProtocolLib is not available. Battista AI Tab feature will not be enabled.");
+            return;
+        }
+
+        if (tabListener == null) {
             tabListener = new PlayerTabListener();
 
             // Register listener dynamically
