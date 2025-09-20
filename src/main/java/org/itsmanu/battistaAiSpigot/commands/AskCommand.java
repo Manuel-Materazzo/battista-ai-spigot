@@ -1,5 +1,6 @@
 package org.itsmanu.battistaAiSpigot.commands;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -41,6 +42,20 @@ public class AskCommand implements CommandExecutor {
             return true;
         }
         Player player = (Player) sender;
+
+        // Check global rate limits
+        if(LimitsUtil.isGlobalRateLimitExceeded()){
+            var rateLimitMessage = ChatUtil.formatConfigMessage("messages.global_ratelimit_exceded", "Global Ratelimit Exceeded");
+            Bukkit.broadcast(rateLimitMessage);
+            return true;
+        }
+
+        // Check player rate limits
+        if(LimitsUtil.isPlayerRateLimitExceeded(player.getUniqueId())){
+            var rateLimitMessage = ChatUtil.formatConfigMessage("messages.player_ratelimit_exceded", "Player Ratelimit Exceeded");
+            Bukkit.broadcast(rateLimitMessage);
+            return true;
+        }
 
         // If no arguments provided, enter interactive mode
         if (args.length == 0) {

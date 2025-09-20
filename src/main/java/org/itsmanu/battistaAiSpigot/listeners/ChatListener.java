@@ -2,6 +2,7 @@ package org.itsmanu.battistaAiSpigot.listeners;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -53,6 +54,20 @@ public class ChatListener implements Listener {
         // Check if the player has the required permission
         if (!player.hasPermission("battista.use")) {
             ChatUtil.sendDebug("Player " + player.getName() + " does not have permission for AI helper");
+            return;
+        }
+
+        // Check global rate limits
+        if(LimitsUtil.isGlobalRateLimitExceeded()){
+            var rateLimitMessage = ChatUtil.formatConfigMessage("messages.global_ratelimit_exceded", "Global Ratelimit Exceeded");
+            Bukkit.broadcast(rateLimitMessage);
+            return;
+        }
+
+        // Check player rate limits
+        if(LimitsUtil.isPlayerRateLimitExceeded(player.getUniqueId())){
+            var rateLimitMessage = ChatUtil.formatConfigMessage("messages.player_ratelimit_exceded", "Player Ratelimit Exceeded");
+            Bukkit.broadcast(rateLimitMessage);
             return;
         }
 

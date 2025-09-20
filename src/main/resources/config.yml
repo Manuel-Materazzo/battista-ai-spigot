@@ -46,6 +46,18 @@ limits:
   # Maximum time a player can idle in interactive mode (/ask wihout arguments) before the session is closed (in seconds)
   inteactive_timeout: 60
 
+  # Global limits on AI helper use for all players combined
+  ai_requests_global:
+    requests_per_minute: 30
+    requests_per_hour: 600
+    requests_per_day: 1200
+
+  # Limits on AI helper use for each player
+  ai_requests_player:
+    requests_per_minute: 3
+    requests_per_hour: 60
+    requests_per_day: 120
+
 messages:
   question_too_short: "&cYour question is too short! Please provide more details."
   question_too_long: "&cThe question is too long! Maximum 150 characters allowed."
@@ -59,6 +71,8 @@ messages:
   empty_question: "&cYou have to ask something!"
   only_players: "&cOnly players can use this command!"
   realoaded: "&aBattista plugin configuration successfully reloaded!"
+  global_ratelimit_exceded: "&cSorry, the AI service is currently unavailable due to global rate limit exceeded."
+  player_ratelimit_exceded: "&cSorry, you have exceeded the rate limit for AI requests. Please try again later."
   not_realoaded: "&cAn error occurred while reloading the configuration!"
   ask_interactive: "&7Hey, i'm Battista, the AI Helper! feel free to ask me anything! Just send a chat message and i'll respond to you!"
   ask_interactive_pending: "&7You already are on answer mode! just ask me anything without commands"

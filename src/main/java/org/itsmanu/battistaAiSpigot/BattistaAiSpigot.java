@@ -6,6 +6,7 @@ import org.itsmanu.battistaAiSpigot.commands.AskCommand;
 import org.itsmanu.battistaAiSpigot.commands.BattistaCommand;
 import org.itsmanu.battistaAiSpigot.listeners.ChatListener;
 import org.itsmanu.battistaAiSpigot.listeners.PlayerInteractiveAskListener;
+import org.itsmanu.battistaAiSpigot.utils.LimitsUtil;
 import org.itsmanu.battistaAiSpigot.utils.TabUtil;
 
 import java.util.Objects;
@@ -38,6 +39,9 @@ public final class BattistaAiSpigot extends JavaPlugin {
             TabUtil.enableTabFeature();
         }
 
+        // start cleanup task on rate limits
+        LimitsUtil.startCleanupTask();
+
         getLogger().info("Battista successfully enabled!");
         getLogger().info("Configured Battista answer backend endpoint: " + getConfig().getString("endpoint.answer-url"));
         getLogger().info("Configured Battista list backend endpoint: " + getConfig().getString("endpoint.list-url"));
@@ -58,6 +62,10 @@ public final class BattistaAiSpigot extends JavaPlugin {
         if (getConfig().getBoolean("tab.enabled", false)) {
             TabUtil.disableTabFeature();
         }
+
+        // Stop cleanup task on rate limits
+        LimitsUtil.stopCleanupTask();
+
         getLogger().info("Battista successfully disabled!");
     }
 
