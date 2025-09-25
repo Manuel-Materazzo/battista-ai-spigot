@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
+import org.itsmanu.battistaAiSpigot.dto.Question;
 import org.itsmanu.battistaAiSpigot.utils.ChatUtil;
 import org.itsmanu.battistaAiSpigot.utils.HttpUtil;
 import org.itsmanu.battistaAiSpigot.utils.LimitsUtil;
@@ -44,30 +45,9 @@ public class ChatListener implements Listener {
 
         ChatUtil.sendDebug("Chat message from " + player.getName() + ": " + message);
 
-        String question = getQuestion(event, message);
+        Question question = getQuestion(event, message);
 
-        // check if the question is valid
-        if (!ChatUtil.is_question_valid(question, player, false)) {
-            return;
-        }
-
-        // Check if the player has the required permission
-        if (!player.hasPermission("battista.use")) {
-            ChatUtil.sendDebug("Player " + player.getName() + " does not have permission for AI helper");
-            return;
-        }
-
-        // Check player rate limits
-        if(LimitsUtil.isPlayerRateLimitExceeded(player.getUniqueId())){
-            var rateLimitMessage = ChatUtil.formatConfigMessage("messages.player_ratelimit_exceded", "Player Ratelimit Exceeded");
-            Bukkit.broadcast(rateLimitMessage);
-            return;
-        }
-
-        // Check global rate limits
-        if(LimitsUtil.isGlobalRateLimitExceeded()){
-            var rateLimitMessage = ChatUtil.formatConfigMessage("messages.global_ratelimit_exceded", "Global Ratelimit Exceeded");
-            Bukkit.broadcast(rateLimitMessage);
+        if(!shouldAnswer(player, question)){
             return;
         }
 
@@ -75,8 +55,13 @@ public class ChatListener implements Listener {
 
         // Process the request
         // Note: this will automatically handle thread switching
-        var request = HttpUtil.askAI(question);
-        ChatUtil.sendAiAnswer(request, processingMessage, logger);
+        var request = HttpUtil.askAI(question.question());
+
+        if (question.privateQuestion()) {
+            ChatUtil.sendAiAnswer(request, player, processingMessage, logger);
+        } else {
+            ChatUtil.sendAiAnswer(request, processingMessage, logger);
+        }
     }
 
     /**
@@ -94,7 +79,7 @@ public class ChatListener implements Listener {
      * @param message The raw message content to be processed
      * @return The extracted question or null if no valid question was found
      */
-    private String getQuestion(AsyncChatEvent event, String message) {
+    private Question getQuestion(AsyncChatEvent event, String message) {
         Player player = event.getPlayer();
 
         // get configs
@@ -110,19 +95,23 @@ public class ChatListener implements Listener {
             LimitsUtil.removePendingQuestions(player);
             // start a validity check and warn the player
             ChatUtil.is_question_valid(message, player, true);
-            return message;
+            // create question object
+            return new Question(message, true);
         }
         // Check if the message contains the tag (e.g., @Helper)
         else if (hasTag(config, message, tag)) {
             // Remove the tag from the message
-            return extractQuestion(message, tag);
+            Pattern tagPattern = Pattern.compile(Pattern.quote(tag) + "\\s*", Pattern.CASE_INSENSITIVE);
+            var question = tagPattern.matcher(message).replaceAll("").trim();
+            // create question object
+            return new Question(question, false);
         }
         // Check for automatic question detection
         else if (autoDetectQuestions && QUESTION_PATTERN.matcher(message).matches()) {
             ChatUtil.sendDebug("Automatically detected question: " + message);
-            return message;
+            return new Question(message, false);
         }
-        return null;
+        return new Question(null, false);
     }
 
     /**
@@ -144,15 +133,43 @@ public class ChatListener implements Listener {
     }
 
     /**
-     * Extracts a question from a message by removing the tag.
+     * Determines whether the AI should answer the given question based on various criteria.
+     * This method performs the following checks:
+     * 1. Validates the question content and warns the player if invalid (only for private questions)
+     * 2. Verifies the player has the required permission to use the AI helper
+     * 3. Checks if the player has exceeded their rate limits
+     * 4. Checks if the global rate limits have been exceeded
      *
-     * @param message The original message containing the tag.
-     * @param tag     The tag to be removed.
-     * @return The extracted question without the tag.
+     * @param player The player who asked the question
+     * @param question The question object containing the question text and privacy setting
+     * @return true if the AI should answer the question, false otherwise
      */
-    private String extractQuestion(String message, String tag) {
-        Pattern tagPattern = Pattern.compile(Pattern.quote(tag) + "\\s*", Pattern.CASE_INSENSITIVE);
-        return tagPattern.matcher(message).replaceAll("").trim();
-    }
+    private boolean shouldAnswer(Player player, Question question) {
+        // check if the question is valid and warn the player only if the question was private (avoid spamming public chat)
+        if (!ChatUtil.is_question_valid(question.question(), player, question.privateQuestion())) {
+            return false;
+        }
 
+        // Check if the player has the required permission
+        if (!player.hasPermission("battista.use")) {
+            ChatUtil.sendDebug("Player " + player.getName() + " does not have permission for AI helper");
+            return false;
+        }
+
+        // Check player rate limits
+        if (LimitsUtil.isPlayerRateLimitExceeded(player.getUniqueId())) {
+            var rateLimitMessage = ChatUtil.formatConfigMessage("messages.player_ratelimit_exceded", "Player Ratelimit Exceeded");
+            Bukkit.broadcast(rateLimitMessage);
+            return false;
+        }
+
+        // Check global rate limits
+        if (LimitsUtil.isGlobalRateLimitExceeded()) {
+            var rateLimitMessage = ChatUtil.formatConfigMessage("messages.global_ratelimit_exceded", "Global Ratelimit Exceeded");
+            Bukkit.broadcast(rateLimitMessage);
+            return false;
+        }
+
+        return true;
+    }
 }
