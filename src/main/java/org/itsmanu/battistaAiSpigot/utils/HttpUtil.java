@@ -3,6 +3,7 @@ package org.itsmanu.battistaAiSpigot.utils;
 import com.google.gson.*;
 import okhttp3.*;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
+import org.itsmanu.battistaAiSpigot.dto.BackendResponse;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -47,41 +48,54 @@ public class HttpUtil {
      */
     public static CompletableFuture<String> askAI(String question) {
         String endpointUrl = BattistaAiSpigot.getConfigs().getString("endpoint.answer-url", "http://localhost:8000/v2/answer");
-        return coordinateRequest(question, endpointUrl);
+        String payload = prepareQuestionJsonPayload(question, true);
+        return coordinateRequest(payload, endpointUrl).thenApply(BackendResponse::getMessage);
     }
 
     /**
      * Retrieves a list of documents from the AI endpoint asynchronously.
      *
-     * @return A CompletableFuture containing the list of documents as a JSON string.
+     * @return A CompletableFuture containing the list of documents as a string.
      */
     public static CompletableFuture<String> getDocuments() {
         String endpointUrl = BattistaAiSpigot.getConfigs().getString("endpoint.list-url", "http://localhost:8000/v2/list_documents");
-        return coordinateRequest("", endpointUrl);
+        String payload = prepareQuestionJsonPayload("", true);
+        return coordinateRequest(payload, endpointUrl).thenApply(BackendResponse::getMessage);
+    }
+
+    /**
+     * Moderate a message to assess its toxicity.
+     *
+     * @param message The message to send for moderation.
+     * @return A CompletableFuture containing the moderator's response.
+     */
+    public static CompletableFuture<BackendResponse> askModerator(String message) {
+        String endpointUrl = BattistaAiSpigot.getConfigs().getString("endpoint.moderate-url", "http://localhost:8000/v1/moderate");
+        String payload = prepareQuestionJsonPayload(message, false);
+        return coordinateRequest(payload, endpointUrl);
     }
 
     /**
      * Coordinates the request to the specified URL with the given question asynchronously.
      *
-     * @param question The question to send in the request.
-     * @param url      The endpoint URL to send the request to.
+     * @param payload The payload to send in the request.
+     * @param url     The endpoint URL to send the request to.
      * @return A CompletableFuture containing the response from the server.
      */
-    private static CompletableFuture<String> coordinateRequest(String question, String url) {
-        CompletableFuture<String> future = new CompletableFuture<>();
+    private static CompletableFuture<BackendResponse> coordinateRequest(String payload, String url) {
+        CompletableFuture<BackendResponse> future = new CompletableFuture<>();
 
         try {
-            String jsonString = prepareJsonPayload(question);
-            Request request = buildHttpRequest(url, jsonString);
+            Request request = buildHttpRequest(url, payload);
 
             ChatUtil.sendDebug("Sending Battista HTTP request to: " + url);
-            ChatUtil.sendDebug("Battista Payload: " + jsonString);
+            ChatUtil.sendDebug("Battista Payload: " + payload);
 
             executeHttpRequest(request, future);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Error preparing the Battista HTTP request", e);
             String message = BattistaAiSpigot.getConfigs().getString("messages.internal_error", "Internal Error");
-            future.complete(message);
+            future.complete(new BackendResponse(message));
         }
 
         return future;
@@ -108,13 +122,13 @@ public class HttpUtil {
      * @param request The HTTP request to execute.
      * @param future  The CompletableFuture to complete with the response or error message.
      */
-    private static void executeHttpRequest(Request request, CompletableFuture<String> future) {
+    private static void executeHttpRequest(Request request, CompletableFuture<BackendResponse> future) {
         httpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NotNull Call call, @NotNull IOException e) {
                 logger.log(Level.WARNING, "Battista HTTP request failed: " + e.getMessage(), e);
                 String message = BattistaAiSpigot.getConfigs().getString("messages.cant_process", "Can't process request");
-                future.complete(message);
+                future.complete(new BackendResponse(message));
             }
 
             @Override
@@ -123,7 +137,7 @@ public class HttpUtil {
                     if (!response.isSuccessful() || response.body() == null) {
                         logger.warning("Invalid Battista HTTP response. Status code: " + response.code());
                         String message = BattistaAiSpigot.getConfigs().getString("messages.cant_process", "Service unavailable, Error: ");
-                        future.complete(message + response.code());
+                        future.complete(new BackendResponse(message + response.code()));
                         return;
                     }
 
@@ -131,17 +145,17 @@ public class HttpUtil {
                     ChatUtil.sendDebug("Battista HTTP response received: " + responseBody);
 
                     if (responseBody == null || responseBody.trim().isEmpty()) {
-                        future.complete("");
+                        future.complete(new BackendResponse(""));
                         return;
                     }
 
                     try {
                         JsonElement jsonElement = gson.fromJson(responseBody, JsonElement.class);
-                        String aiResponse = extractResponse(jsonElement, responseBody);
+                        BackendResponse aiResponse = extractResponse(jsonElement, responseBody);
                         future.complete(aiResponse);
                     } catch (JsonSyntaxException e) {
                         // If JSON parsing fails, complete with original response
-                        future.complete(responseBody);
+                        future.complete(new BackendResponse(responseBody));
                     } catch (Exception e) {
                         // For any other unexpected errors, complete exceptionally
                         future.completeExceptionally(e);
@@ -161,14 +175,23 @@ public class HttpUtil {
      * @param fallback    The fallback string to return if extraction fails.
      * @return The extracted response or the fallback string.
      */
-    private static String extractResponse(JsonElement jsonElement, String fallback) {
+    private static BackendResponse extractResponse(JsonElement jsonElement, String fallback) {
         if (jsonElement == null) {
-            return fallback;
+            return new BackendResponse(fallback);
         }
 
         if (jsonElement.isJsonObject()) {
             var response = jsonElement.getAsJsonObject();
-            return response.has("response") ? response.get("response").getAsString() : fallback;
+            // get message or fallback
+            String message = fallback;
+            Boolean flag = null;
+            if (response.has("response")) {
+                message = response.get("response").getAsString();
+            }
+            if (response.has("toxic")) {
+                flag = response.get("toxic").getAsBoolean();
+            }
+            return new BackendResponse(flag, message);
         } else if (jsonElement.isJsonArray()) {
             var responseArray = jsonElement.getAsJsonArray();
             StringBuilder result = new StringBuilder("Idexed documents:\n");
@@ -183,9 +206,9 @@ public class HttpUtil {
                     }
                 }
             }
-            return result.toString();
+            return new BackendResponse(result.toString());
         } else {
-            return fallback;
+            return new BackendResponse(fallback);
         }
     }
 
@@ -195,7 +218,7 @@ public class HttpUtil {
      * @param question The question to include in the payload.
      * @return A JSON string representing the request payload.
      */
-    private static String prepareJsonPayload(String question) {
+    private static String prepareQuestionJsonPayload(String question, boolean filterEnabled) {
         // add user request
         JsonObject requestBody = new JsonObject();
         if (!question.isEmpty()) {
@@ -204,7 +227,7 @@ public class HttpUtil {
 
         String folderFilter = BattistaAiSpigot.getConfigs().getString("source-filter.folder", "");
         // add trailing slash if missing
-        if (!folderFilter.isEmpty()) {
+        if (filterEnabled && !folderFilter.isEmpty()) {
             if (!folderFilter.endsWith("/")) {
                 folderFilter += "/";
             }
@@ -213,7 +236,6 @@ public class HttpUtil {
             requestBody.addProperty("filters", filter);
             requestBody.addProperty("metadata_filter", filter);
         }
-
 
         return gson.toJson(requestBody);
     }
