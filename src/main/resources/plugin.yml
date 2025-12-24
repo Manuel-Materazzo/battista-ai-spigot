@@ -26,3 +26,6 @@ permissions:
   battista.documents:
     description: Permission to list documents that Battista uses as knowledge sources
     default: op
+  battista.moderation.exclude:
+    description: Permission to get excluded from automatic chat moderation
+    default: op

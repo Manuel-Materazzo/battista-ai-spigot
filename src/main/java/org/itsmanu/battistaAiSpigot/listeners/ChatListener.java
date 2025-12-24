@@ -1,6 +1,7 @@
 package org.itsmanu.battistaAiSpigot.listeners;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.chat.SignedMessage;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -14,6 +15,7 @@ import org.itsmanu.battistaAiSpigot.utils.ChatUtil;
 import org.itsmanu.battistaAiSpigot.utils.HttpUtil;
 import org.itsmanu.battistaAiSpigot.utils.LimitsUtil;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
@@ -45,9 +47,14 @@ public class ChatListener implements Listener {
 
         ChatUtil.sendDebug("Chat message from " + player.getName() + ": " + message);
 
+        // start moderation in background
+        var signedMessage = event.signedMessage();
+        backgroundModerate(player, signedMessage);
+
+        // extract question and the "privacy" status of the said question
         Question question = getQuestion(event, message);
 
-        if(!shouldAnswer(player, question)){
+        if (!shouldAnswer(player, question)) {
             return;
         }
 
@@ -140,7 +147,7 @@ public class ChatListener implements Listener {
      * 3. Checks if the player has exceeded their rate limits
      * 4. Checks if the global rate limits have been exceeded
      *
-     * @param player The player who asked the question
+     * @param player   The player who asked the question
      * @param question The question object containing the question text and privacy setting
      * @return true if the AI should answer the question, false otherwise
      */
@@ -171,5 +178,49 @@ public class ChatListener implements Listener {
         }
 
         return true;
+    }
+
+    /**
+     * Performs background moderation of a player's message.
+     * <p>
+     * This method checks if the player is excluded from moderation based on permissions.
+     * If not excluded, it sends the message to the moderation service asynchronously.
+     * If the moderation service flags the message, it deletes the message retroactively
+     * for all online players and notifies the sender.
+     *
+     * @param player        The player who sent the message
+     * @param signedMessage The signed message containing the content to be moderated
+     */
+    private void backgroundModerate(Player player, SignedMessage signedMessage) {
+        // Check if the player has an exclusion
+        if (player.hasPermission("battista.moderation.exclude")) {
+            ChatUtil.sendDebug("Player " + player.getName() + " is excluded from chat moderation");
+            return;
+        }
+
+        String message = signedMessage.message();
+
+        // Start moderation in background
+        HttpUtil.askModerator(message).thenAccept(response -> {
+            if (response.isFlag()) {
+                // Delete the message retroactively for all players
+                Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
+                    // Delete from all online players
+                    for (Player onlinePlayer : Bukkit.getOnlinePlayers()) {
+                        onlinePlayer.deleteMessage(signedMessage);
+                    }
+
+                    // Notify the sender
+                    var moderatedMessage = ChatUtil.formatConfigMessage(
+                            "messages.moderated",
+                            "Your message was removed by automatic moderation."
+                    );
+                    player.sendMessage(moderatedMessage);
+                });
+            }
+        }).exceptionally(throwable -> {
+            logger.log(Level.SEVERE, "Error during Battista AI request", throwable);
+            return null;
+        });
     }
 }

@@ -7,6 +7,7 @@ debug: false
 endpoint:
   answer-url: "http://localhost:8000/v2/answer"
   list-url: "http://localhost:8000/v2/list_documents"
+  moderate-url: "http://localhost:8000/v1/moderate"
   timeout: 30
 
 # Knowledge filtering
@@ -79,6 +80,7 @@ messages:
   ask_interactive: "&7Hey, i'm Battista, the AI Helper! feel free to ask me anything! Just send a chat message and i'll respond to you!"
   ask_interactive_pending: "&7You already are on answer mode! just ask me anything without commands"
   ask_inteactive_timeout: "&7Ok, guess you don't want to ask anything. I'll be here if you need me! just use **/ask** again"
+  moderated: "&cYour message was removed by automatic moderation."
   help: |-
     &7Available commands:
     &b/battista reload &7- Reload the plugin configuration
