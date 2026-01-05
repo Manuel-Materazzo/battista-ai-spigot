@@ -1,7 +1,9 @@
 package org.itsmanu.battistaAiSpigot.listeners;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.chat.SignedMessage;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -9,12 +11,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
 import org.itsmanu.battistaAiSpigot.dto.Question;
 import org.itsmanu.battistaAiSpigot.utils.ChatUtil;
 import org.itsmanu.battistaAiSpigot.utils.HttpUtil;
 import org.itsmanu.battistaAiSpigot.utils.LimitsUtil;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -31,20 +38,29 @@ public class ChatListener implements Listener {
     public ChatListener() {
     }
 
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    public void blockLegacyChat(AsyncPlayerChatEvent event) {
+        // Always cancel the legacy event to block shithead plugins
+        event.setCancelled(true);
+    }
+
+
     /**
      * Handles the AsyncChatEvent to detect and process AI-related questions.
      *
      * @param event The asynchronous chat event triggered by a player message.
      */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onAsyncChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
-        String message = plainTextSerializer.serialize(event.message()).trim();
+        SignedMessage signedMessage = event.signedMessage();
+        String message = signedMessage.message().trim();
 
         if (message.isEmpty()) {
             return;
         }
 
+        //TODO: weird log
         ChatUtil.sendDebug("Chat message from " + player.getName() + ": " + message);
 
         // get configs
@@ -52,11 +68,21 @@ public class ChatListener implements Listener {
         boolean moderationEnabled = config.getBoolean("chat.moderation.enabled", false);
         boolean clientSideFiltering = config.getBoolean("chat.moderation.client_side_filtering", true);
 
-        // Client side moderation, for server side moderation check "ChatDecorateListener"
-        if (moderationEnabled && clientSideFiltering) {
-            // start moderation in background
-            var signedMessage = event.signedMessage();
-            clientSideBackgroundModerate(player, signedMessage);
+        // moderate
+        if (moderationEnabled) {
+            // Check recency: only moderate if the message is <50ms old (not re-thrown)
+            long ageMs = Duration.between(signedMessage.timestamp(), Instant.now()).toMillis();
+            if (ageMs < 50) {
+                if (clientSideFiltering) {
+                    // start moderation in background, and delete message if it's harmful
+                    clientSideBackgroundModerate(player, signedMessage);
+                } else {
+                    // Always cancel the chat event
+                    event.setCancelled(true);
+                    // start moderation in background, and rethrow event (send message) if it's clean
+                    serverSideBackgroundModerate(player, signedMessage, event);
+                }
+            }
         }
 
         // extract question and the "privacy" status of the said question
@@ -225,8 +251,78 @@ public class ChatListener implements Listener {
                     );
                     player.sendMessage(moderatedMessage);
                 });
+                ChatUtil.sendDebug("Player " + player.getName() + " was moderated");
             }
         }).exceptionally(throwable -> {
+            logger.log(Level.SEVERE, "Error during Battista AI request", throwable);
+            return null;
+        });
+    }
+
+    /**
+     * Performs background moderation of a player's message and sends it to the provided audience.
+     * <p>
+     * This method checks if the player is excluded from moderation based on permissions and interactive mode status.
+     * If not excluded, it sends the message to the moderation service asynchronously.
+     * If the moderation service flags the message, it does not send it.
+     *
+     * @param player        The player who sent the message
+     * @param signedMessage The signed message containing the content to be moderated
+     * @param event         The original chat event that triggered this moderation
+     */
+    private void serverSideBackgroundModerate(Player player, SignedMessage signedMessage, AsyncChatEvent event) {
+
+        // Check if the player has an exclusion
+        if (player.hasPermission("battista.moderation.exclude")) {
+            ChatUtil.sendDebug("Player " + player.getName() + " is excluded from chat moderation");
+            return;
+        }
+
+        // Check if the player is in interactive mode
+        if (LimitsUtil.hasPendingQuestions(player)) {
+            ChatUtil.sendDebug("Player " + player.getName() + " is in interactive mode, skipping chat moderation");
+            return;
+        }
+
+        // Store viewers BEFORE clearing
+        Set<Audience> originalViewers = new HashSet<>(event.viewers());
+
+        // Nuclear option: Remove ALL viewers so nobody receives the message
+        event.viewers().clear();
+
+        String message = signedMessage.message();
+
+        // Execute moderation asynchronously
+        HttpUtil.askModerator(message).thenAccept(response -> {
+            if (response.isFlag()) {
+                // Message blocked, notify player
+                var moderatedMessage = ChatUtil.formatConfigMessage(
+                        "messages.moderated",
+                        "Your message was removed by automatic moderation."
+                );
+                Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> player.sendMessage(moderatedMessage));
+                ChatUtil.sendDebug("Player " + player.getName() + " was moderated");
+            } else {
+                // Message is safe, re-dispatch the event so other plugins can process it
+                Bukkit.getScheduler().runTaskAsynchronously(BattistaAiSpigot.getInstance(), () -> {
+                    AsyncChatEvent newEvent = new AsyncChatEvent(
+                            true,
+                            player,
+                            originalViewers,
+                            event.renderer(),
+                            event.message(),
+                            event.originalMessage(),
+                            event.signedMessage()
+                    );
+                    Bukkit.getPluginManager().callEvent(newEvent);
+                });
+                ChatUtil.sendDebug("Player " + player.getName() + " wasn't moderated");
+            }
+        }).exceptionally(throwable -> {
+            Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
+                var errorMessage = ChatUtil.formatMessage("An error occurred: " + throwable.getMessage());
+                Bukkit.broadcast(errorMessage);
+            });
             logger.log(Level.SEVERE, "Error during Battista AI request", throwable);
             return null;
         });
