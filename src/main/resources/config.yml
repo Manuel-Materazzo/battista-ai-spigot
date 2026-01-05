@@ -46,7 +46,8 @@ chat:
     enabled: true
     # If enabled, messagges will be deleted using mojang's async api, otherwise they will be just filtered.
     # This improves chat responsiveness, but allows message deletion only after a 3 seconds timeout (mojang restriction).
-    client_side_filtering: true
+    # CLIENT SIDE FILTERING WORKS ONLY IN ONLINE MODE! (and may not work with your chat formatting plugin)
+    client_side_filtering: false
 
   # Prefix for AI responses in chat
   response_prefix: "&7[&bAI Helper&7]&f "
