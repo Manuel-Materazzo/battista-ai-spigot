@@ -147,7 +147,7 @@ public class BattistaCommand implements CommandExecutor, TabCompleter {
         // Request the list of documents to the remote backend
         // Note: this will automatically handle thread switching
         var request = HttpUtil.getDocuments();
-        ChatUtil.sendAiAnswer(request, player, processingMessage, logger);
+        ChatUtil.sendAiAnswer(request, player, processingMessage);
 
     }
 

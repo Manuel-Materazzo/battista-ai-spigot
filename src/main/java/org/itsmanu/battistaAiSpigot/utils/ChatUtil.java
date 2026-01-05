@@ -8,7 +8,6 @@ import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ChatUtil {
 
@@ -54,21 +53,22 @@ public class ChatUtil {
      * Sends the provided AI request asynchronously and broadcasts the response to all players.
      * This method automatically handles thread switching to avoid issues with the Bukkit API.
      *
-     * @param aiRequest The ai request to send.
-     * @param logger    The logger to use for error reporting.
+     * @param aiRequest         The ai request to send.
+     * @param processingMessage Message to send while processing
      */
-    public static void sendAiAnswer(CompletableFuture<String> aiRequest, Component processingMessage, Logger logger) {
-        sendAiAnswer(aiRequest, null, processingMessage, logger);
+    public static void sendAiAnswer(CompletableFuture<String> aiRequest, Component processingMessage) {
+        sendAiAnswer(aiRequest, null, processingMessage);
     }
 
     /**
      * Sends the provided AI request asynchronously and responds to the player.
      * This method automatically handles thread switching to avoid issues with the Bukkit API.
      *
-     * @param aiRequest The ai request to send.
-     * @param player    The player who asked the question.
+     * @param aiRequest         The ai request to send.
+     * @param player            The player who asked the question.
+     * @param processingMessage Message to send while processing
      */
-    public static void sendAiAnswer(CompletableFuture<String> aiRequest, Player player, Component processingMessage, Logger logger) {
+    public static void sendAiAnswer(CompletableFuture<String> aiRequest, Player player, Component processingMessage) {
 
         if (player != null) {
             player.sendMessage(processingMessage);
@@ -100,7 +100,7 @@ public class ChatUtil {
                 }
             });
 
-            logger.log(Level.SEVERE, "Error during Battista AI request", throwable);
+            BattistaAiSpigot.getInstance().getLogger().log(Level.SEVERE, "Error during Battista AI request", throwable);
             return null;
         });
     }

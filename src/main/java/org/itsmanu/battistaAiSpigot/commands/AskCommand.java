@@ -79,7 +79,7 @@ public class AskCommand implements CommandExecutor {
         // Send the question to the AI - private response (only to the player who executed the command)
         // Note: this will automatically handle thread switching
         var request = HttpUtil.askAI(question);
-        ChatUtil.sendAiAnswer(request, player, processingMessage, logger);
+        ChatUtil.sendAiAnswer(request, player, processingMessage);
         return true;
     }
 

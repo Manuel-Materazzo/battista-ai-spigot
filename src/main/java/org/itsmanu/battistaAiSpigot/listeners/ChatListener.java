@@ -65,9 +65,9 @@ public class ChatListener implements Listener {
         var request = HttpUtil.askAI(question.question());
 
         if (question.privateQuestion()) {
-            ChatUtil.sendAiAnswer(request, player, processingMessage, logger);
+            ChatUtil.sendAiAnswer(request, player, processingMessage);
         } else {
-            ChatUtil.sendAiAnswer(request, processingMessage, logger);
+            ChatUtil.sendAiAnswer(request, processingMessage);
         }
     }
 
