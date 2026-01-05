@@ -1,10 +1,8 @@
 package org.itsmanu.battistaAiSpigot.listeners;
 
+import com.google.common.hash.Hashing;
 import io.papermc.paper.event.player.AsyncChatEvent;
-import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.chat.SignedMessage;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -18,10 +16,9 @@ import org.itsmanu.battistaAiSpigot.utils.ChatUtil;
 import org.itsmanu.battistaAiSpigot.utils.HttpUtil;
 import org.itsmanu.battistaAiSpigot.utils.LimitsUtil;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.HashSet;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -30,18 +27,54 @@ public class ChatListener implements Listener {
 
     private final Logger logger = BattistaAiSpigot.getInstance().getLogger();
 
-    private final PlainTextComponentSerializer plainTextSerializer = PlainTextComponentSerializer.plainText();
-
     // Pattern to detect questions (ends with ? optionally followed by spaces)
     private static final Pattern QUESTION_PATTERN = Pattern.compile(".*\\?\\s*$");
+
+    // messages hashes that have been moderated and are safe to send
+    private final Set<String> safeMessages = ConcurrentHashMap.newKeySet();
 
     public ChatListener() {
     }
 
+    /**
+     * Handles the AsyncPlayerChatEvent to moderate chat messages server-side.
+     * We are using this deprecated event because we need to keep compatibility with other chat formatting plugins.
+     *
+     * @param event The asynchronous player chat event triggered by a player message
+     */
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
-    public void blockLegacyChat(AsyncPlayerChatEvent event) {
-        // Always cancel the legacy event to block shithead plugins
+    public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
+        Player player = event.getPlayer();
+        String message = event.getMessage().trim();
+
+        if (message.isEmpty()) {
+            return;
+        }
+
+        // get configs
+        FileConfiguration config = BattistaAiSpigot.getConfigs();
+        boolean moderationEnabled = config.getBoolean("chat.moderation.enabled", false);
+        boolean clientSideFiltering = config.getBoolean("chat.moderation.client_side_filtering", true);
+
+        // proceed only if server side moderation is enabled
+        if (!moderationEnabled || clientSideFiltering) {
+            return;
+        }
+
+        ChatUtil.sendDebug("Starting server side moderation for player " + player.getName() + " with message: " + message);
+
+        // Check if the message was already moderated and we are caught in a loop
+        if (safeMessages.remove(hashMessage(message))) {
+            // Already moderated, do nothing
+            ChatUtil.sendDebug("Message of " + player.getName() + " was already moderated");
+            return;
+        }
+
+        // cancel this event
         event.setCancelled(true);
+
+        // Moderate in background, and re-fire event if moderation passes
+        serverSideBackgroundModerate(player, message);
     }
 
 
@@ -50,7 +83,7 @@ public class ChatListener implements Listener {
      *
      * @param event The asynchronous chat event triggered by a player message.
      */
-    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onAsyncChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
         SignedMessage signedMessage = event.signedMessage();
@@ -60,7 +93,6 @@ public class ChatListener implements Listener {
             return;
         }
 
-        //TODO: weird log
         ChatUtil.sendDebug("Chat message from " + player.getName() + ": " + message);
 
         // get configs
@@ -69,20 +101,9 @@ public class ChatListener implements Listener {
         boolean clientSideFiltering = config.getBoolean("chat.moderation.client_side_filtering", true);
 
         // moderate
-        if (moderationEnabled) {
-            // Check recency: only moderate if the message is <50ms old (not re-thrown)
-            long ageMs = Duration.between(signedMessage.timestamp(), Instant.now()).toMillis();
-            if (ageMs < 50) {
-                if (clientSideFiltering) {
-                    // start moderation in background, and delete message if it's harmful
-                    clientSideBackgroundModerate(player, signedMessage);
-                } else {
-                    // Always cancel the chat event
-                    event.setCancelled(true);
-                    // start moderation in background, and rethrow event (send message) if it's clean
-                    serverSideBackgroundModerate(player, signedMessage, event);
-                }
-            }
+        if (moderationEnabled && clientSideFiltering) {
+            // start moderation in background, and delete message if it's harmful
+            clientSideBackgroundModerate(player, signedMessage);
         }
 
         // extract question and the "privacy" status of the said question
@@ -266,11 +287,10 @@ public class ChatListener implements Listener {
      * If not excluded, it sends the message to the moderation service asynchronously.
      * If the moderation service flags the message, it does not send it.
      *
-     * @param player        The player who sent the message
-     * @param signedMessage The signed message containing the content to be moderated
-     * @param event         The original chat event that triggered this moderation
+     * @param player  The player who sent the message
+     * @param message The message containing the content to be moderated
      */
-    private void serverSideBackgroundModerate(Player player, SignedMessage signedMessage, AsyncChatEvent event) {
+    private void serverSideBackgroundModerate(Player player, String message) {
 
         // Check if the player has an exclusion
         if (player.hasPermission("battista.moderation.exclude")) {
@@ -284,14 +304,6 @@ public class ChatListener implements Listener {
             return;
         }
 
-        // Store viewers BEFORE clearing
-        Set<Audience> originalViewers = new HashSet<>(event.viewers());
-
-        // Nuclear option: Remove ALL viewers so nobody receives the message
-        event.viewers().clear();
-
-        String message = signedMessage.message();
-
         // Execute moderation asynchronously
         HttpUtil.askModerator(message).thenAccept(response -> {
             if (response.isFlag()) {
@@ -303,18 +315,11 @@ public class ChatListener implements Listener {
                 Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> player.sendMessage(moderatedMessage));
                 ChatUtil.sendDebug("Player " + player.getName() + " was moderated");
             } else {
+                // Add message to the "safe" list, to avoid moderation loops
+                safeMessages.add(hashMessage(message));
                 // Message is safe, re-dispatch the event so other plugins can process it
-                Bukkit.getScheduler().runTaskAsynchronously(BattistaAiSpigot.getInstance(), () -> {
-                    AsyncChatEvent newEvent = new AsyncChatEvent(
-                            true,
-                            player,
-                            originalViewers,
-                            event.renderer(),
-                            event.message(),
-                            event.originalMessage(),
-                            event.signedMessage()
-                    );
-                    Bukkit.getPluginManager().callEvent(newEvent);
+                Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
+                    player.chat(message);
                 });
                 ChatUtil.sendDebug("Player " + player.getName() + " wasn't moderated");
             }
@@ -327,4 +332,17 @@ public class ChatListener implements Listener {
             return null;
         });
     }
+
+    /**
+     * Generates a hash for a given message using Murmur3 128-bit algorithm.
+     *
+     * @param message The message to be hashed
+     * @return A string representation of the hash
+     */
+    private String hashMessage(String message) {
+        return Hashing.murmur3_128()
+                .hashString(message, StandardCharsets.UTF_8)
+                .toString();
+    }
+
 }
