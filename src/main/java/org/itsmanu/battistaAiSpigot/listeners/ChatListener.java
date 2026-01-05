@@ -47,9 +47,17 @@ public class ChatListener implements Listener {
 
         ChatUtil.sendDebug("Chat message from " + player.getName() + ": " + message);
 
-        // start moderation in background
-        var signedMessage = event.signedMessage();
-        backgroundModerate(player, signedMessage);
+        // get configs
+        FileConfiguration config = BattistaAiSpigot.getConfigs();
+        boolean moderationEnabled = config.getBoolean("chat.moderation.enabled", false);
+        boolean clientSideFiltering = config.getBoolean("chat.moderation.client_side_filtering", true);
+
+        // Client side moderation, for server side moderation check "ChatDecorateListener"
+        if (moderationEnabled && clientSideFiltering) {
+            // start moderation in background
+            var signedMessage = event.signedMessage();
+            clientSideBackgroundModerate(player, signedMessage);
+        }
 
         // extract question and the "privacy" status of the said question
         Question question = getQuestion(event, message);
@@ -191,7 +199,7 @@ public class ChatListener implements Listener {
      * @param player        The player who sent the message
      * @param signedMessage The signed message containing the content to be moderated
      */
-    private void backgroundModerate(Player player, SignedMessage signedMessage) {
+    private void clientSideBackgroundModerate(Player player, SignedMessage signedMessage) {
         // Check if the player has an exclusion
         if (player.hasPermission("battista.moderation.exclude")) {
             ChatUtil.sendDebug("Player " + player.getName() + " is excluded from chat moderation");

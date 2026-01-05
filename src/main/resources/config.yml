@@ -41,6 +41,13 @@ chat:
     min_length: 5
     max_length: 150
 
+  # AI helper looks at every message and moderates it
+  moderation:
+    enabled: true
+    # If enabled, messagges will be deleted using mojang's async api, otherwise they will be just filtered.
+    # This improves chat responsiveness, but allows message deletion only after a 3 seconds timeout (mojang restriction).
+    client_side_filtering: true
+
   # Prefix for AI responses in chat
   response_prefix: "&7[&bAI Helper&7]&f "
 
