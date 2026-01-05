@@ -2,6 +2,7 @@ package org.itsmanu.battistaAiSpigot.utils;
 
 import de.themoep.minedown.adventure.MineDown;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.itsmanu.battistaAiSpigot.BattistaAiSpigot;
@@ -43,8 +44,9 @@ public class ChatUtil {
      * @param message The debug message to be sent.
      */
     public static void sendDebug(String message) {
-        message = formatMessage(message).toString();
         if (BattistaAiSpigot.getConfigs().getBoolean("debug", false)) {
+            var formatted = formatMessage(message);
+            message = PlainTextComponentSerializer.plainText().serialize(formatted);
             BattistaAiSpigot.getInstance().getLogger().info(message);
         }
     }
