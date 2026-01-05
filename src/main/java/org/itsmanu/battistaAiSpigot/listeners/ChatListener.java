@@ -36,7 +36,7 @@ public class ChatListener implements Listener {
      *
      * @param event The asynchronous chat event triggered by a player message.
      */
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
     public void onAsyncChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
         String message = plainTextSerializer.serialize(event.message()).trim();
