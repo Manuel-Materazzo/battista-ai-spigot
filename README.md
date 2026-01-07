@@ -1,6 +1,6 @@
 # Battista Ai Helper
 
-> **A Minecraft 1.21.1+ plugin that brings AI answers to your server chat!**
+> **A Minecraft 1.21.1+ plugin that brings AI answers and AI moderation to your server chat!**
 
 ---
 
@@ -10,14 +10,16 @@ Battista Ai Helper is a plugin for Minecraft Paper/Spigot servers that lets play
 AI-powered answers directly in-game. Players can ask privately with a command, publicly in chat using a tag (
 like `@Helper`), or just by typing a question ending in a `?` – the plugin handles it all!
 
-
+Meanwhile, the AI can continuously monitor chat messages and automatically remove any toxic content to maintain a welcoming community environment.
 
 - **Fast**: Asynchronous HTTP calls for zero server lag
 - **Flexible**: Multiple activation modes (command, tag, auto-detect)
 - **Integrated**: AI helper appears in TAB and answers interactively
-- **Document-Aware**: Knowledge filtering system, with built-in document management and commands to view active knowledge sources
+- **Document-Aware**: Knowledge filtering system, with built-in document management and commands to view active
+  knowledge sources
 - **Fully Configurable**: Customizable message lengths, endpoints, behaviors, and all user-facing text
 - **Safe \& Reliable**: Comprehensive permissions system, input validation, and robust error handling
+- **AI-Powered Moderation**: Automatic toxic message detection and removal to keep your chat safe and welcoming
 
 ---
 
@@ -59,41 +61,50 @@ like `@Helper`), or just by typing a question ending in a `?` – the plugin han
 
 ## 🔒 Permissions
 
-| Permission        | Description                          | Default |
-|-------------------|--------------------------------------|---------|
-| `battista.use`    | Use /ask and chat AI features        | true    |
-| `battista.reload` | Reload plugin via `/battista reload` | op      |
+| Permission                    | Description                              | Default |
+|-------------------------------|------------------------------------------|---------|
+| `battista.use`                | Use /ask and chat AI features            | true    |
+| `battista.reload`             | Reload plugin via `/battista reload`     | op      |
+| `battista.documents`          | List documents via `/battista documents` | op      |
+| `battista.moderation.exclude` | Get excluded from AI chat moderation     | op      |
 
 ---
 
 ## 🛠️ Commands
 
-| Command            | Description                  |
-|--------------------|------------------------------|
-| `/ask`             | Ask AI with interactive mode |
-| `/ask <question>`  | Ask AI privately             |
-| `/battista reload` | Reload plugin configuration  |
-| `/battista help`   | Show help message            |
+| Command               | Description                                       |
+|-----------------------|---------------------------------------------------|
+| `/ask`                | Ask AI with interactive mode                      |
+| `/ask <question>`     | Ask AI privately                                  |
+| `/battista documents` | Lists documents that AI uses as knowledge sources |
+| `/battista reload`    | Reload plugin configuration                       |
+| `/battista help`      | Show help message                                 |
 
 ---
 
 ## ⚙️ Configuration
 
-The plugin is highly configurable through `config.yml`, allowing you to customize every aspect of the AI helper's behavior and appearance.
+The plugin is highly configurable through `config.yml`, allowing you to customize every aspect of the AI helper's
+behavior and appearance.
 
 ### Key Configuration Areas
 
-**Backend Integration**: Configure your AI backend endpoint URL and connection settings. The plugin is designed to work optimally with the separate [Battista AI Backend application](https://github.com/Manuel-Materazzo/battista-ai-backend).
+**Backend Integration**: Configure your AI backend endpoint URL and connection settings. The plugin is designed to work
+optimally with the separate [Battista AI Backend application](https://github.com/Manuel-Materazzo/battista-ai-backend).
 
-**Knowledge Filtering**: Set up source filters to target specific knowledge subsets, such as server-specific folders in your document repository. This enables contextual responses tailored to your server's needs.
+**Knowledge Filtering**: Set up source filters to target specific knowledge subsets, such as server-specific folders in
+your document repository. This enables contextual responses tailored to your server's needs.
 
-**Tab Menu Integration**: Control whether the AI helper appears in the player TAB menu (requires ProtocolLib) and customize its skin and display name.
+**Tab Menu Integration**: Control whether the AI helper appears in the player TAB menu (requires ProtocolLib) and
+customize its skin and display name.
 
 **Chat Activation Methods**: Fine-tune how players can interact with the AI:
 
 - **Tagging**: Enable/disable chat tag detection (default: `@Helper`)
 - **Auto-detection**: Configure automatic question recognition for messages ending with `?`
 - **Response formatting**: Customize the chat prefix for AI responses
+
+**Moderation**: Tweak chat moderation to promote a toxic free gameplay.
 
 **Rate Limiting**: Configure character limits and timeouts to prevent abuse while maintaining responsive gameplay.
 
@@ -125,10 +136,13 @@ The configuration file includes detailed comments explaining each setting and pr
 
 4. **Configure the plugin:**
     - Edit `plugins/Battista-Ai-Helper/config.yml`
-    - Set your AI endpoint:
+    - Set your AI endpoint and api-key (if needed):
       ```yaml
       endpoint:
         answer-url: "http://your-ai-server.com/v2/answer"
+        list-url: "http://localhost:8000/v2/list_documents"
+        moderate-url: "http://localhost:8000/v1/moderate"
+        api-key: "your-api-key"
       ```
     - Adjust any other settings/messages as needed.
 
