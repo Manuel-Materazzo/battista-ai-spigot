@@ -109,10 +109,12 @@ public class HttpUtil {
      * @return A configured Request object ready to be executed.
      */
     private static Request buildHttpRequest(String url, String jsonPayload) {
+        String apiKey = BattistaAiSpigot.getConfigs().getString("endpoint.api-key", "your-api-key");
         return new Request.Builder()
                 .url(url)
                 .post(RequestBody.create(jsonPayload, JSON))
                 .addHeader("Content-Type", "application/json")
+                .addHeader("Authorization", apiKey)
                 .build();
     }
 

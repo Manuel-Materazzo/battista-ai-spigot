@@ -1,13 +1,15 @@
 # Debug settings
 debug: false
 
-# HTTP endpoint URL for the AI backend
+# HTTP endpoint URLs for the AI backend
 # To archive optimal results, you should use Battista AI Backend, which MUST be installed separately from minecraft.
 # It's a whole different application, more infos here: https://github.com/Manuel-Materazzo/battista-ai-backend
 endpoint:
   answer-url: "http://localhost:8000/v2/answer"
   list-url: "http://localhost:8000/v2/list_documents"
   moderate-url: "http://localhost:8000/v1/moderate"
+  # API key used to authenticate with the AI backend in order to prevent abuse
+  api-key: "your-api-key"
   timeout: 30
 
 # Knowledge filtering
