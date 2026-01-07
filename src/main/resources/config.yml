@@ -53,6 +53,8 @@ chat:
 
   # Prefix for AI responses in chat
   response_prefix: "&7[&bAI Helper&7]&f "
+  # When enabled, the AI answers will be logged to the console even if the question was private
+  log_private_answers: true
 
 # Limits to prevent abuse
 limits:

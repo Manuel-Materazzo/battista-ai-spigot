@@ -83,23 +83,13 @@ public class ChatUtil {
             // Switch back to the main thread to send the message
             Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
                 var formattedResponse = ChatUtil.formatMessage(response);
-
-                if (player != null) {
-                    player.sendMessage(formattedResponse);
-                } else {
-                    Bukkit.broadcast(formattedResponse);
-                }
+                sendMessage(player, formattedResponse);
             });
         }).exceptionally(throwable -> {
             // Handle errors
             Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
                 var errorMessage = ChatUtil.formatMessage("An error occurred: " + throwable.getMessage());
-
-                if (player != null) {
-                    player.sendMessage(errorMessage);
-                } else {
-                    Bukkit.broadcast(errorMessage);
-                }
+                sendMessage(player, errorMessage);
             });
 
             BattistaAiSpigot.getInstance().getLogger().log(Level.SEVERE, "Error during Battista AI request", throwable);
@@ -150,4 +140,22 @@ public class ChatUtil {
         return true;
     }
 
+    /**
+     * Sends a message to a player or broadcasts it to all players.
+     * If logging of private answers is enabled in the configuration, the message is also logged to the console.
+     *
+     * @param player           The player to send the message to. If null, the message is broadcasted to all players.
+     * @param formattedMessage The message to send, already formatted as a Component.
+     */
+    private static void sendMessage(Player player, Component formattedMessage) {
+        if (player != null) {
+            player.sendMessage(formattedMessage);
+            if (BattistaAiSpigot.getConfigs().getBoolean("chat.log_private_answers", false)) {
+                var message = PlainTextComponentSerializer.plainText().serialize(formattedMessage);
+                BattistaAiSpigot.getInstance().getLogger().info(message);
+            }
+        } else {
+            Bukkit.broadcast(formattedMessage);
+        }
+    }
 }
