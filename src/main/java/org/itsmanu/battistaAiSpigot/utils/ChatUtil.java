@@ -52,6 +52,29 @@ public class ChatUtil {
     }
 
     /**
+     * Sends a info message to logger only if file logging is enabled.
+     *
+     * @param message The info message to be sent.
+     */
+    public static void sendOnFile(String message) {
+        if (BattistaAiSpigot.getConfigs().getBoolean("log-to-file", false)) {
+            BattistaAiSpigot.getInstance().getLogger().info(message);
+        }
+    }
+
+    /**
+     * Sends a info message to logger only if file logging is enabled.
+     *
+     * @param message The info message to be sent.
+     */
+    public static void sendOnFile(Component message) {
+        if (BattistaAiSpigot.getConfigs().getBoolean("log-to-file", false)) {
+            String plainMessage = PlainTextComponentSerializer.plainText().serialize(message);
+            BattistaAiSpigot.getInstance().getLogger().info(plainMessage);
+        }
+    }
+
+    /**
      * Sends the provided AI request asynchronously and broadcasts the response to all players.
      * This method automatically handles thread switching to avoid issues with the Bukkit API.
      *
@@ -84,6 +107,9 @@ public class ChatUtil {
             Bukkit.getScheduler().runTask(BattistaAiSpigot.getInstance(), () -> {
                 var formattedResponse = ChatUtil.formatMessage(response);
                 sendMessage(player, formattedResponse);
+
+                // Log the answer on file if enabled
+                ChatUtil.sendOnFile(formattedResponse);
             });
         }).exceptionally(throwable -> {
             // Handle errors
@@ -150,7 +176,10 @@ public class ChatUtil {
     private static void sendMessage(Player player, Component formattedMessage) {
         if (player != null) {
             player.sendMessage(formattedMessage);
-            if (BattistaAiSpigot.getConfigs().getBoolean("chat.log_private_answers", false)) {
+            // if private answers need to be logged, and log to file is disabled (private answers would be logged anyway)
+            if (BattistaAiSpigot.getConfigs().getBoolean("chat.log_private_answers", false) &&
+                    !BattistaAiSpigot.getConfigs().getBoolean("log-to-file", false)) {
+                // log it
                 var message = PlainTextComponentSerializer.plainText().serialize(formattedMessage);
                 BattistaAiSpigot.getInstance().getLogger().info(message);
             }

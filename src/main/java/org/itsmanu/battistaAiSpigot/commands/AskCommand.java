@@ -74,6 +74,9 @@ public class AskCommand implements CommandExecutor {
         // Log the question if debug mode is enabled
         ChatUtil.sendDebug("Command /ask executed by " + player.getName() + ": " + question);
 
+        // Log the question on file if enabled
+        ChatUtil.sendOnFile("Command /ask executed by " + player.getName() + ": " + question);
+
         var processingMessage = ChatUtil.formatConfigMessage("messages.processing", "Processing question...");
 
         // Send the question to the AI - private response (only to the player who executed the command)

@@ -103,6 +103,9 @@ public class ChatListener implements Listener {
             return;
         }
 
+        // Log the question on file if enabled
+        ChatUtil.sendOnFile("Question asked by " + player.getName() + ": " + question.question());
+
         var processingMessage = ChatUtil.formatConfigMessage("messages.processing", "Processing question...");
 
         // Process the request
