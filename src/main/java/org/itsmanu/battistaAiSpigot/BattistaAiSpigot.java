@@ -10,11 +10,16 @@ import org.itsmanu.battistaAiSpigot.utils.DependencyUtil;
 import org.itsmanu.battistaAiSpigot.utils.LimitsUtil;
 import org.itsmanu.battistaAiSpigot.utils.TabUtil;
 
+import java.io.IOException;
 import java.util.Objects;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.SimpleFormatter;
 
 public final class BattistaAiSpigot extends JavaPlugin {
 
     private static BattistaAiSpigot instance;
+    private FileHandler fileHandler;
 
     /**
      * Called when the plugin is enabled. Initializes the plugin by setting up the instance,
@@ -29,6 +34,11 @@ public final class BattistaAiSpigot extends JavaPlugin {
         // Save the default configuration if it doesn't exist
         saveDefaultConfig();
 
+        // Setup file logging if enabled in the configuration
+        if (getConfig().getBoolean("log-to-file", false)) {
+            setupFileLogging();
+        }
+
         // Register commands
         registerCommands();
 
@@ -37,7 +47,7 @@ public final class BattistaAiSpigot extends JavaPlugin {
 
         // Refresh AI Helper on tab
         if (getConfig().getBoolean("tab.enabled", false)) {
-            if(DependencyUtil.checkProtocolLib()){
+            if (DependencyUtil.checkProtocolLib()) {
                 TabUtil.enableTabFeature();
             } else {
                 getLogger().warning("ProtocolLib is not available. Battista AI Tab feature will not be enabled.");
@@ -64,8 +74,14 @@ public final class BattistaAiSpigot extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // Disable tab feature
         if (DependencyUtil.checkProtocolLib() && getConfig().getBoolean("tab.enabled", false)) {
             TabUtil.disableTabFeature();
+        }
+
+        // Close file handler
+        if (fileHandler != null) {
+            fileHandler.close();
         }
 
         // Stop cleanup task on rate limits
@@ -99,6 +115,28 @@ public final class BattistaAiSpigot extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerInteractiveAskListener(), this);
 
         getLogger().info("Battista Event listeners successfully registered!");
+    }
+
+    private void setupFileLogging() {
+        try {
+            // Create log directory if it doesn't exist
+            if (!getDataFolder().exists()) {
+                getDataFolder().mkdir();
+            }
+
+            // Create a file handler for logging to a file
+            fileHandler = new FileHandler(getDataFolder() + "/battista.log", true);
+            fileHandler.setFormatter(new SimpleFormatter());
+
+            // Add the file handler to the logger
+            getLogger().addHandler(fileHandler);
+
+            // Prevent duplicate logging to console
+            getLogger().setUseParentHandlers(false);
+
+        } catch (IOException e) {
+            getLogger().log(Level.SEVERE, "Could not setup file logging!", e);
+        }
     }
 
     /**

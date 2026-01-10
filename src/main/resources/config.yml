@@ -1,6 +1,9 @@
 # Debug settings
 debug: false
 
+# All battista related messages wil be logged to file instead of console
+log-to-file: false
+
 # HTTP endpoint URLs for the AI backend
 # To archive optimal results, you should use Battista AI Backend, which MUST be installed separately from minecraft.
 # It's a whole different application, more infos here: https://github.com/Manuel-Materazzo/battista-ai-backend
