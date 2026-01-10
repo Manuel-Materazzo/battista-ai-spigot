@@ -51,13 +51,8 @@ public class ChatListener implements Listener {
             return;
         }
 
-        // get configs
-        FileConfiguration config = BattistaAiSpigot.getConfigs();
-        boolean moderationEnabled = config.getBoolean("chat.moderation.enabled", false);
-        boolean clientSideFiltering = config.getBoolean("chat.moderation.client_side_filtering", true);
-
         // proceed only if server side moderation is enabled
-        if (!moderationEnabled || clientSideFiltering) {
+        if (!shouldModerate(player, true)) {
             return;
         }
 
@@ -95,13 +90,8 @@ public class ChatListener implements Listener {
 
         ChatUtil.sendDebug("Chat message from " + player.getName() + ": " + message);
 
-        // get configs
-        FileConfiguration config = BattistaAiSpigot.getConfigs();
-        boolean moderationEnabled = config.getBoolean("chat.moderation.enabled", false);
-        boolean clientSideFiltering = config.getBoolean("chat.moderation.client_side_filtering", true);
-
         // moderate
-        if (moderationEnabled && clientSideFiltering) {
+        if (shouldModerate(player, false)) {
             // start moderation in background, and delete message if it's harmful
             clientSideBackgroundModerate(player, signedMessage);
         }
@@ -236,6 +226,49 @@ public class ChatListener implements Listener {
     }
 
     /**
+     * Determines whether a player's message should be moderated based on various criteria.
+     * <p>
+     * This method checks the following conditions:
+     * 1. If moderation is enabled in the configuration
+     * 2. If the player has permission to be excluded from moderation
+     * 3. If the player is currently in interactive mode
+     *
+     * @param player     The player whose message is being checked for moderation
+     * @param serverMode Indicates whether the moderation is being performed on the server side
+     * @return true if the player's message should be moderated, false otherwise
+     */
+    private boolean shouldModerate(Player player, boolean serverMode) {
+        // get configs
+        FileConfiguration config = BattistaAiSpigot.getConfigs();
+        boolean moderationEnabled = config.getBoolean("chat.moderation.enabled", false);
+        boolean clientSideFiltering = config.getBoolean("chat.moderation.client_side_filtering", false);
+
+        // check if moderation is enabled
+        if (!moderationEnabled || clientSideFiltering == serverMode) {
+            // Spiegazione per chi trova un if difficile da comprendere (io):
+            // client mode, check su server -> true == true -> entra nell if e dice che non dobbiamo moderare
+            // server mode, check su server -> false == true -> non entra nell if, dobbiamo moderare
+            // client mode, check su client -> true == false -> non entra nell if, dobbiamo moderare
+            // server mode, check su client -> false == false -> entra nell if e dice che non dobbiamo moderare
+            return false;
+        }
+
+        // Check if the player has an exclusion
+        if (player.hasPermission("battista.moderation.exclude")) {
+            ChatUtil.sendDebug("Player " + player.getName() + " is excluded from chat moderation");
+            return false;
+        }
+
+        // Check if the player is in interactive mode
+        if (LimitsUtil.hasPendingQuestions(player)) {
+            ChatUtil.sendDebug("Player " + player.getName() + " is in interactive mode, skipping chat moderation");
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Performs background moderation of a player's message.
      * <p>
      * This method checks if the player is excluded from moderation based on permissions.
@@ -247,12 +280,6 @@ public class ChatListener implements Listener {
      * @param signedMessage The signed message containing the content to be moderated
      */
     private void clientSideBackgroundModerate(Player player, SignedMessage signedMessage) {
-        // Check if the player has an exclusion
-        if (player.hasPermission("battista.moderation.exclude")) {
-            ChatUtil.sendDebug("Player " + player.getName() + " is excluded from chat moderation");
-            return;
-        }
-
         String message = signedMessage.message();
 
         // Start moderation in background
@@ -291,18 +318,6 @@ public class ChatListener implements Listener {
      * @param message The message containing the content to be moderated
      */
     private void serverSideBackgroundModerate(Player player, String message) {
-
-        // Check if the player has an exclusion
-        if (player.hasPermission("battista.moderation.exclude")) {
-            ChatUtil.sendDebug("Player " + player.getName() + " is excluded from chat moderation");
-            return;
-        }
-
-        // Check if the player is in interactive mode
-        if (LimitsUtil.hasPendingQuestions(player)) {
-            ChatUtil.sendDebug("Player " + player.getName() + " is in interactive mode, skipping chat moderation");
-            return;
-        }
 
         // Execute moderation asynchronously
         HttpUtil.askModerator(message).thenAccept(response -> {
