@@ -26,7 +26,7 @@ public class BackendResponse {
     }
 
     public boolean isFlag() {
-        return flag;
+        return Boolean.TRUE.equals(this.flag);
     }
 
     public void setFlag(boolean flag) {
